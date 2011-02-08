@@ -1,0 +1,13 @@
+===Install:===
+
+  * cd /var/www
+
+  * tar -xzvf asterisk-cdr-viewer.tgz
+
+  * cp asterisk-cdr-viewer/contrib/httpd/asterisk-cdr-viewer.conf /etc/httpd/conf.d/
+
+  * service restart httpd
+
+  * change settings in /var/www/asterisk-cdr-viewer/include/config.inc.php
+
+  * open browser with url  http://your_ip/acdr/index.php
