@@ -16,8 +16,10 @@ if (empty($_POST['startday'])) {
 } else {
 	$startday = $_POST['startday'];
 }
+$starthour = empty($_POST['starthour']) ? '00' : $_POST['starthour'];
+$startmin = empty($_POST['startmin']) ? '00' : $_POST['startmin'];
 
-$startdate = "'$startyear-$startmonth-$startday 00:00:00'";
+$startdate = "'$startyear-$startmonth-$startday $starthour:$startmin:00'";
 $endmonth = empty($_POST['endmonth']) ? date('m') : $_POST['endmonth'];  
 $endyear = empty($_POST['endyear']) ? date('Y') : $_POST['endyear'];  
 
@@ -26,6 +28,10 @@ if (empty($_POST['endday']) || (isset($_POST['endday']) && ($_POST['endday'] > d
 } else {
 	$endday = $_POST['endday'];
 }
+$endhour = empty($_POST['endhour']) ? '23' : $_POST['endhour'];
+$endmin = empty($_POST['endmin']) ? '59' : $_POST['endmin'];
+
+$enddate = "'$endyear-$endmonth-$endday $endhour:$endmin:59'";
 
 #
 # asterisk regexp2sqllike
@@ -41,7 +47,6 @@ if ( empty($_POST['dst']) ) {
 	$dst_number = asteriskregexp2sqllike( 'dst' );
 }
 
-$enddate = "'$endyear-$endmonth-$endday 23:59:59'";
 $date_range = "calldate BETWEEN $startdate AND $enddate";
 $mod_vars['channel'][] = empty($_POST['channel']) ? NULL : $_POST['channel'];
 $mod_vars['channel'][] = empty($_POST['channel_mod']) ? NULL : $_POST['channel_mod'];
@@ -131,6 +136,8 @@ if ( isset($_POST['need_html']) && $_POST['need_html'] == 'true' ) {
 
 if ( isset($result) ) {
 	$tot_calls_raw = mysql_num_rows($result);
+} else {
+	$tot_calls_raw = 0;
 }
 
 if ( $tot_calls_raw ) {
@@ -216,8 +223,16 @@ if ( isset($_POST['need_chart']) && $_POST['need_chart'] == 'true' ) {
 			$graph_col_title = 'Month';
 		break;
 		case "day_of_week":
-			$query2 = "SELECT DATE_FORMAT(calldate, '%W') AS day, count(*) AS total_calls, sum(duration) AS total_duration FROM $db_name.$db_table_name $where GROUP BY DATE_FORMAT(calldate, '%W') ORDER BY DATE_FORMAT(calldate, '%w') ASC LIMIT $result_limit";
+			$query2 = "SELECT DATE_FORMAT(calldate, '%W') AS day, count(*) AS total_calls, sum(duration) AS total_duration FROM $db_name.$db_table_name $where GROUP BY DATE_FORMAT(calldate, '%W') ORDER BY day ASC LIMIT $result_limit";
 			$graph_col_title = 'Day of week';
+		break;
+		case "minutes1":
+			$query2 = "SELECT DATE_FORMAT(calldate, '%Y-%m-%d %H:%i') AS minutes, count(*) AS total_calls, sum(duration) AS total_duration FROM $db_name.$db_table_name $where GROUP BY DATE_FORMAT(calldate, '%Y-%m-%d %H:%i')  ORDER BY minutes ASC LIMIT $result_limit";
+			$graph_col_title = 'Minute';
+		break;
+		case "minutes10":
+			$query2 = "SELECT CONCAT(SUBSTR(DATE_FORMAT(calldate, '%Y-%m-%d %H:%i'),1,15), '0') AS minutes, count(*) AS total_calls, sum(duration) AS total_duration FROM $db_name.$db_table_name $where GROUP BY CONCAT(SUBSTR(DATE_FORMAT(calldate, '%Y-%m-%d %H:%i'),1,15), '0') ORDER BY minutes ASC LIMIT $result_limit";
+			$graph_col_title = '10 Minutes';
 		break;
 		case "day":
 		default:
