@@ -1,10 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-
 <?php
 require_once 'include/config.inc.php';
 
+$system_name_array[] = 'cdrasterisk';
 /* Retrieve authenticated user and system access */
 $php_auth_user = ($krb_sso) ? explode('@', $_SERVER['PHP_AUTH_USER'], -1) : array($_SERVER['PHP_AUTH_USER']);
 foreach($system_access_array as $key => $user_list) {
@@ -50,6 +47,8 @@ include 'templates/header.tpl.php';
   $mod_vars['userfield'][] = empty($_POST['userfield_mod']) ? NULL : $_POST['userfield_mod'];
   $mod_vars['accountcode'][] = empty($_POST['accountcode']) ? NULL : $_POST['accountcode'];
   $mod_vars['accountcode'][] = empty($_POST['accountcode_mod']) ? NULL : $_POST['accountcode_mod'];
+  $result_limit = empty($_POST['limit']) ? $db_result_limit : $_POST['limit'];
+
   foreach ($mod_vars as $key => $val) {
     if (empty($val[0])) {
       unset($_POST[$key.'_mod']);
@@ -81,9 +80,11 @@ include 'templates/header.tpl.php';
   $where = "WHERE $date_range $uniqueid $channel $src $clid $dst $userfield $accountcode $disposition $duration";
 
 // Connecting, selecting database
-  $dbconn_string = empty($db_host) ? "dbname=$db_name user=$db_user password=$db_pass" : "host=$db_host port=$db_port dbname=$db_name user=$db_user password=$db_pass";
-  $dbconn = pg_connect("$dbconn_string")
-    or die('Could not connect: ' . pg_last_error());
+  //$dbconn_string = empty($db_host) ? "dbname=$db_name user=$db_user password=$db_pass" : "host=$db_host port=$db_port dbname=$db_name user=$db_user password=$db_pass";
+  //$dbconn = mysql_connect("$dbconn_string")
+  $dbconn = mysql_connect( $db_host, $db_user, $db_pass )
+    or die('Could not connect: ' . mysql_error());
+  mysql_select_db($db_name,$dbconn);
 //NEW
   $i = count($system_name_array);
   if ($i == 1) {
@@ -100,9 +101,10 @@ include 'templates/header.tpl.php';
       }
     }
   }
-  $query = "SELECT to_char(calldate, '$db_calldate_format') AS calldate, clid, src, dst, dcontext, channel, dstchannel, lastapp, lastdata, duration, billsec, disposition, amaflags, accountcode, uniqueid, userfield FROM $subquery $where $order $sort NULLS FIRST LIMIT $db_result_limit";
+  #$query = "SELECT to_char(calldate, '$db_calldate_format') AS calldate, clid, src, dst, dcontext, channel, dstchannel, lastapp, lastdata, duration, billsec, disposition, amaflags, accountcode, uniqueid, userfield FROM $subquery $where $order $sort NULLS FIRST LIMIT $result_limit";
+  $query = "SELECT calldate, clid, src, dst, dcontext, channel, dstchannel, lastapp, lastdata, duration, billsec, disposition, amaflags, accountcode, uniqueid, userfield FROM $subquery $where $order $sort LIMIT $result_limit";
 // END NEW
-  $result = pg_query($query) or die('Query failed: ' . pg_last_error());
+  $result = mysql_query($query) or die("Query failed: [$query] " . (mysql_error()));
 //NEW GRAPHS
   $subquery2 = '(';
   $j = count($system_name_array);
@@ -116,7 +118,7 @@ include 'templates/header.tpl.php';
       $subquery2 .= ')';
     }
   }
-  $query2 = "SELECT $group, count(*) AS total_calls, sum(duration) AS total_duration FROM $subquery2 AS $group GROUP BY $group ORDER BY $group ASC LIMIT $db_result_limit";
+  $query2 = "SELECT $group, count(*) AS total_calls, sum(duration) AS total_duration FROM $subquery2 AS $group GROUP BY $group ORDER BY $group ASC LIMIT $result_limit";
   switch ($group) {
     case "accountcode":
       $graph_col_title = 'Account Code';
@@ -128,30 +130,39 @@ include 'templates/header.tpl.php';
       $graph_col_title = 'User Field';
     break;
     case "hour":
-      $query2 = "SELECT to_char(calldate, 'YYYY-MM-DD HH24') AS hour, count(*) AS total_calls, sum(duration) AS total_duration FROM $db_table_name $where GROUP BY to_char(calldate, 'YYYY-MM-DD HH24') ORDER BY hour ASC LIMIT $db_result_limit";
+      $query2 = "SELECT DATE_FORMAT(calldate, '%Y-%m-%d %H') AS hour, count(*) AS total_calls, sum(duration) AS total_duration FROM $db_table_name $where GROUP BY DATE_FORMAT(calldate, '%Y-%m-%d %H') ORDER BY hour ASC LIMIT $result_limit";
       $graph_col_title = 'Hour';
     break;
     case "month":
-      $query2 = "SELECT to_char(calldate, 'YYYY-MM') AS month, count(*) AS total_calls, sum(duration) AS total_duration FROM $db_table_name $where GROUP BY to_char(calldate, 'YYYY-MM') ORDER BY month ASC LIMIT $db_result_limit";
+      $query2 = "SELECT DATE_FORMAT(calldate, '%Y-%m') AS month, count(*) AS total_calls, sum(duration) AS total_duration FROM $db_table_name $where GROUP BY DATE_FORMAT(calldate, '%Y-%m') ORDER BY month ASC LIMIT $result_limit";
       $graph_col_title = 'Month';
     break;
     case "day":
     default:
-      $query2 = "SELECT to_char(calldate, 'YYYY-MM-DD') AS day, count(*) AS total_calls, sum(duration) AS total_duration FROM $db_table_name $where GROUP BY to_char(calldate, 'YYYY-MM-DD') ORDER BY day ASC LIMIT $db_result_limit";
+      $query2 = "SELECT DATE_FORMAT(calldate, '%Y-%m-%d') AS day, count(*) AS total_calls, sum(duration) AS total_duration FROM $db_table_name $where GROUP BY DATE_FORMAT(calldate, '%Y-%m-%e') ORDER BY day ASC LIMIT $result_limit";
       $graph_col_title = 'Day';
   }
-  $result2 = pg_query($query2) or die('Query failed: ' . pg_last_error());
-  $tot_calls = pg_num_rows($result);
-  if ($tot_calls > '0') {
-    $tot_duration_secs = array_sum(pg_fetch_all_columns($result2, 2));
-    $tot_duration = sprintf('%02d', intval($tot_duration_secs/60)).':'.sprintf('%02d', intval($tot_duration_secs%60));
-    $max_calls = max(pg_fetch_all_columns($result2, 1));
-    $max_duration = max(pg_fetch_all_columns($result2, 2));
-  } else {
-    $tot_duration = '0';
-    $max_calls = '0';
-    $max_duration = '0';
+  $tot_calls_raw = mysql_num_rows($result);
+  $result2 = mysql_query($query2) or die('Query failed: ' . mysql_error());
+  $tot_calls = 0;
+  $tot_duration = '0';
+  $max_calls = '0';
+  $max_duration = '0';
+  $result_array = array();
+  $tot_duration_secs = 0;
+
+  while ($row = mysql_fetch_array($result2, MYSQL_NUM)) {
+	$tot_duration_secs += $row[2];
+	$tot_calls += $row[1];
+	if ( $row[1] > $max_calls ) {
+		$max_calls = $row[1];
+	}
+	if ( $row[2] > $max_duration ) {
+		$max_duration = $row[2];
+	}
+	array_push($result_array,$row);
   }
+  $tot_duration = sprintf('%02d', intval($tot_duration_secs/60)).':'.sprintf('%02d', intval($tot_duration_secs%60));
 ?>
 <div id="main">
 <table class="cdr">
@@ -164,11 +175,11 @@ include 'templates/header.tpl.php';
 </table>
 <!--<p>Your PostgreSQL query was: <?php // echo $query ?></p>-->
 <!-- Display Call Detail Records -->
-<p class="center title"><a id="CDR"></a>Call Detail Record Search Returned <?php echo $tot_calls ?> Calls</p>
+<p class="center title"><a id="CDR"></a>Call Detail Record Search Returned <?php echo $tot_calls_raw ?> Calls</p>
 <table class="cdr">
 <?php
   $i = 19;
-  while ($row = pg_fetch_array($result, NULL, PGSQL_ASSOC)) {
+  while ($row = mysql_fetch_array($result, MYSQL_ASSOC)) {
     ++$i;
     if ($i == 20) {
 ?>
@@ -209,13 +220,13 @@ include 'templates/header.tpl.php';
     }
 ?>
 </table>
-<!--<p>Your PostgreSQL query was: <?php // echo $query2 ?></p>-->
+<!--<p>Your PostgreSQL query was: <?php echo $query2 ?></p>-->
 <!-- Display Call Usage Graph -->
 <p class="center title"><a id="Graph"></a>Call Detail Record Usage Graph by <?php echo $graph_col_title ?></p>
 <table class="cdr">
 <?php
   $i = 9;
-  while ($row = pg_fetch_array($result2, NULL, PGSQL_NUM)) {
+  foreach ($result_array as $row) {
     ++$i;
     if ($i == 10) {
 ?>
@@ -245,9 +256,9 @@ include 'templates/header.tpl.php';
 </table>
 </div>
 <?php
-  pg_free_result($result);
-  pg_free_result($result2);
-  pg_close($dbconn);
+  mysql_free_result($result);
+  mysql_free_result($result2);
+  mysql_close($dbconn);
 //} else {
 // Insert automatic query to be executed without posting here
 //}
