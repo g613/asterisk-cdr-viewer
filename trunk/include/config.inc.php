@@ -44,8 +44,8 @@ function formatCallDate($calldate) {
 function formatUniqueID($uniqueid) {
   global $system_monitor_dir, $system_fax_archive_dir;
   $system = explode('-', $uniqueid, 2);
-  if (file_exists("$system_monitor_dir/$uniqueid.ogg")) {
-    echo "    <td class=\"record_col\"><a href=\"download.php?audio=$uniqueid.ogg\" title=\"Listen to call recording\"><img src=\"/icons/small/sound.png\" alt=\"Call recording\" /></a></td>\n";
+  if (file_exists("$system_monitor_dir/$uniqueid.wav")) {
+    echo "    <td class=\"record_col\"><a href=\"download.php?audio=$uniqueid.wav\" title=\"Listen to call recording\"><img src=\"/icons/small/sound.png\" alt=\"Call recording\" /></a></td>\n";
     echo "    <td class=\"record_col\"><abbr title=\"UniqueID: $uniqueid\">$system[0]</abbr></td>\n";
   } elseif (file_exists("$system_fax_archive_dir/$uniqueid.tif")) {
     echo "    <td class=\"record_col\"><a href=\"download.php?fax=$uniqueid.tif\" title=\"View FAX image\"><img src=\"/icons/small/text.png\" alt=\"FAX image\" /></a></td>\n";
@@ -114,6 +114,35 @@ function formatUserField($userfield) {
 
 function formatAccountCode($accountcode) {
   echo "    <td class=\"record_col\">$accountcode</td>\n";
+}
+
+function asteriskregexp2sqllike( $source_data ) {
+	$number = $_POST[$source_data];
+
+	if ( '__' == substr($number,0,2) ) {
+		$number = substr($number,1);
+	} elseif ( '_' == substr($number,0,1) ) {
+		$number_chars = preg_split('//', substr($number,1), -1, PREG_SPLIT_NO_EMPTY);
+		$number = '^';
+    	foreach ($number_chars as $chr) {
+			if ( $chr == 'X' ) {
+				$number .= '[0-9]';
+			} elseif ( $chr == 'Z' ) {
+				$number .= '[1-9]';
+			} elseif ( $chr == 'N' ) {
+				$number .= '[2-9]';
+			} elseif ( $chr == '.' ) {
+				$number .= '.*';
+			} elseif ( $chr == '!' ) {
+				$_POST[ $source_data .'_neg' ] = 'true';
+			} else {
+				$number .= $chr;
+			}
+		}
+		$_POST[ $source_data .'_mod' ] = 'asterisk-regexp';
+		$number .= '$';
+	}
+	return $number;
 }
 
 ?>
