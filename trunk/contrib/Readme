@@ -2,7 +2,7 @@ Install:
 
 	cd /var/www
 
-	tar -xzvf asterisk-cdr-viewer.tgz
+	tar -xzvf asterisk-cdr-viewer.tgz OR svn checkout http://asterisk-cdr-viewer.googlecode.com/svn/trunk/ asterisk-cdr-viewer
 
 	cp asterisk-cdr-viewer/contrib/httpd/asterisk-cdr-viewer.conf /etc/httpd/conf.d/
 
