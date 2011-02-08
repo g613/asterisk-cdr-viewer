@@ -15,6 +15,12 @@ if (isset($_GET['audio'])) {
   header('Content-Length: '.filesize("$system_fax_archive_dir/$_GET[fax]"));
   header("Content-Disposition: attachment; filename=\"$_GET[fax]\"");
   readfile("$system_fax_archive_dir/$_GET[fax]");
+} elseif (isset($_GET['csv'])) {
+  header('Content-Type: text/csv');
+  header('Content-Transfer-Encoding: binary');
+  header('Content-Length: '.filesize("/tmp/$_GET[csv]"));
+  header("Content-Disposition: attachment; filename=\"$_GET[csv]\"");
+  readfile("/tmp/$_GET[csv]");
 }
 exit();
 ?>

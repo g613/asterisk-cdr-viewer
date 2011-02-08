@@ -12,7 +12,6 @@ foreach($system_access_array as $key => $user_list) {
 
 include 'templates/header.tpl.php';
 ?>
-
 <?php
 //if (!empty($_POST['posted'])) {
   $uniqueid = (empty($_POST['uniqueid']) || $_POST['uniqueid'] == 'all') ? NULL : "AND uniqueid LIKE '$_POST[uniqueid]%'";
@@ -33,20 +32,41 @@ include 'templates/header.tpl.php';
   } else {
     $endday = $_POST['endday'];
   }
+  
+  #
+  # asterisk regexp2sqllike
+  #
+  if ( empty($_POST['src']) ) {
+  	$src_number = NULL;
+  } else {
+	$src_number = asteriskregexp2sqllike( 'src' );
+  }
+  if ( empty($_POST['dst']) ) {
+  	$dst_number = NULL;
+  } else {
+	$dst_number = asteriskregexp2sqllike( 'dst' );
+  }
+
   $enddate = "'$endyear-$endmonth-$endday 23:59:59'";
   $date_range = "calldate BETWEEN $startdate AND $enddate";
   $mod_vars['channel'][] = empty($_POST['channel']) ? NULL : $_POST['channel'];
   $mod_vars['channel'][] = empty($_POST['channel_mod']) ? NULL : $_POST['channel_mod'];
-  $mod_vars['src'][] = empty($_POST['src']) ? NULL : $_POST['src'];
+  $mod_vars['channel'][] = empty($_POST['channel_neg']) ? NULL : $_POST['channel_neg'];
+  $mod_vars['src'][] = $src_number;
   $mod_vars['src'][] = empty($_POST['src_mod']) ? NULL : $_POST['src_mod'];
+  $mod_vars['src'][] = empty($_POST['src_neg']) ? NULL : $_POST['src_neg'];
   $mod_vars['clid'][] = empty($_POST['clid']) ? NULL : $_POST['clid'];
   $mod_vars['clid'][] = empty($_POST['clid_mod']) ? NULL : $_POST['clid_mod'];
-  $mod_vars['dst'][] = empty($_POST['dst']) ? NULL : $_POST['dst'];
+  $mod_vars['clid'][] = empty($_POST['clid_neg']) ? NULL : $_POST['clid_neg'];
+  $mod_vars['dst'][] = $dst_number;
   $mod_vars['dst'][] = empty($_POST['dst_mod']) ? NULL : $_POST['dst_mod'];
+  $mod_vars['dst'][] = empty($_POST['dst_neg']) ? NULL : $_POST['dst_neg'];
   $mod_vars['userfield'][] = empty($_POST['userfield']) ? NULL : $_POST['userfield'];
   $mod_vars['userfield'][] = empty($_POST['userfield_mod']) ? NULL : $_POST['userfield_mod'];
+  $mod_vars['userfield'][] = empty($_POST['userfield_neg']) ? NULL : $_POST['userfield_neg'];
   $mod_vars['accountcode'][] = empty($_POST['accountcode']) ? NULL : $_POST['accountcode'];
   $mod_vars['accountcode'][] = empty($_POST['accountcode_mod']) ? NULL : $_POST['accountcode_mod'];
+  $mod_vars['accountcode'][] = empty($_POST['accountcode_neg']) ? NULL : $_POST['accountcode_neg'];
   $result_limit = empty($_POST['limit']) ? $db_result_limit : $_POST['limit'];
 
   foreach ($mod_vars as $key => $val) {
@@ -54,23 +74,40 @@ include 'templates/header.tpl.php';
       unset($_POST[$key.'_mod']);
       $$key = NULL;
     } else {
+	  $pre_like = '';
+	  if ( $val[2] == 'true' ) {
+	  	$pre_like = ' NOT ';
+	  }
       switch ($val[1]) {
         case "contains":
-          $$key = "AND $key LIKE '%$val[0]%'";
+          $$key = "AND $key $pre_like LIKE '%$val[0]%'";
         break;
         case "ends_with":
-          $$key = "AND $key LIKE '%$$val[0]'";
+          $$key = "AND $key $pre_like LIKE '%$$val[0]'";
         break;
         case "exact":
-          $$key = "AND $key = '$val[0]'";
+	  	  if ( $val[2] == 'true' ) {
+	          $$key = "AND $key != '$val[0]'";
+		  } else {
+	          $$key = "AND $key = '$val[0]'";
+		  }
+        break;
+        case "asterisk-regexp":
+          $$key = "AND $key $pre_like RLIKE '$val[0]'";
+ 	  $_POST[ $key .'_mod' ] = 'exact';
         break;
         case "begins_with":
         default:
-          $$key = "AND $key LIKE '$val[0]%'";
+          $$key = "AND $key $pre_like LIKE '$val[0]%'";
       }
     }
   }
-  $disposition = (empty($_POST['disposition']) || $_POST['disposition'] == 'all') ? NULL : "AND disposition = '$_POST[disposition]'";
+
+  if ( $_POST['disposition_neg'] == 'true' ) {
+  	$disposition = (empty($_POST['disposition']) || $_POST['disposition'] == 'all') ? NULL : "AND disposition != '$_POST[disposition]'";
+  } else {
+  	$disposition = (empty($_POST['disposition']) || $_POST['disposition'] == 'all') ? NULL : "AND disposition = '$_POST[disposition]'";
+  }
   $duration = (!isset($_POST['dur_min']) || empty($_POST['dur_max'])) ? NULL : "AND duration BETWEEN '$_POST[dur_min]' AND '$_POST[dur_max]'";
   $order = empty($_POST['order']) ? 'ORDER BY calldate' : "ORDER BY $_POST[order]";
   $sort = empty($_POST['sort']) ? 'DESC' : $_POST['sort'];
@@ -102,9 +139,20 @@ include 'templates/header.tpl.php';
     }
   }
   #$query = "SELECT to_char(calldate, '$db_calldate_format') AS calldate, clid, src, dst, dcontext, channel, dstchannel, lastapp, lastdata, duration, billsec, disposition, amaflags, accountcode, uniqueid, userfield FROM $subquery $where $order $sort NULLS FIRST LIMIT $result_limit";
-  $query = "SELECT calldate, clid, src, dst, dcontext, channel, dstchannel, lastapp, lastdata, duration, billsec, disposition, amaflags, accountcode, uniqueid, userfield FROM $subquery $where $order $sort LIMIT $result_limit";
+ 
+  $csv_header = 'What should I put over here? Hmmm...';
+ 
+  if ( $_POST['need_csv'] == 'true' ) {
+	$csv_file = md5(time() .'-'. $where ).'.csv';
+  	$query = "SELECT calldate, clid, src, dst, dcontext, channel, dstchannel, lastapp, lastdata, duration, billsec, disposition, amaflags, accountcode, uniqueid, userfield into outfile '/tmp/$csv_file' FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"' FROM $subquery $where $order $sort LIMIT $result_limit";
+  	$result = mysql_query($query) or die("Query failed: [$query] " . (mysql_error()));
+  	//mysql_free_result($result);
+	$csv_header = "<h2><a href='download.php?csv=$csv_file'> Download CSV file </a></h2>";
+  }  else {
+	  $query = "SELECT calldate, clid, src, dst, dcontext, channel, dstchannel, lastapp, lastdata, duration, billsec, disposition, amaflags, accountcode, uniqueid, userfield FROM $subquery $where $order $sort LIMIT $result_limit";
 // END NEW
-  $result = mysql_query($query) or die("Query failed: [$query] " . (mysql_error()));
+	  $result = mysql_query($query) or die("Query failed: [$query] " . (mysql_error()));
+	}
 //NEW GRAPHS
   $subquery2 = '(';
   $j = count($system_name_array);
@@ -151,6 +199,8 @@ include 'templates/header.tpl.php';
   $result_array = array();
   $tot_duration_secs = 0;
 
+  //echo $query2;
+
   while ($row = mysql_fetch_array($result2, MYSQL_NUM)) {
 	$tot_duration_secs += $row[2];
 	$tot_calls += $row[1];
@@ -170,12 +220,17 @@ include 'templates/header.tpl.php';
     <td>
       <?php include 'templates/form.tpl.php'?>
     </td>
-    <td>What should I put over here? Hmmm...</td>
+    <td><?php echo $csv_header ?></td>
   </tr>
 </table>
+
 <!--<p>Your PostgreSQL query was: <?php // echo $query ?></p>-->
 <!-- Display Call Detail Records -->
-<p class="center title"><a id="CDR"></a>Call Detail Record Search Returned <?php echo $tot_calls_raw ?> Calls</p>
+<?php
+	if ( $tot_calls_raw ) {
+		echo '<p class="center title"><a id="CDR"></a>Call Detail Record Search Returned '. $tot_calls_raw .' Calls </p>';
+	}
+?>
 <table class="cdr">
 <?php
   $i = 19;
@@ -232,7 +287,7 @@ include 'templates/header.tpl.php';
 ?>
   <tr>
     <th class="end_col"><?php echo $graph_col_title ?></th>
-    <th class="center_col">Total Calls: <?php echo $tot_calls ?> / Total Duration: <?php echo $tot_duration ?></th>
+    <th class="center_col">Total Calls: <?php echo $tot_calls ?> / Max Calls: <?php echo $max_calls ?> / Total Duration: <?php echo $tot_duration ?></th>
     <th class="end_col">Average Call Time</th>
     <th class="img_col"><a href="#CDR" title="Go to the top of the CDR table"><img src="/icons/small/back.png" alt="CDR Table" /></a></th>
     <th class="img_col"><a href="#Graph" title="Go to the CDR Graph"><img src="/icons/small/image2.png" alt="CDR Graph" /></a></th>
