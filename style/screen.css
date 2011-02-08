@@ -30,10 +30,10 @@ img {
 
 /* ID styles */
 #header {
-    background-image : url('/webcdr/templates/mss/images/ff6600/header_gradient.png');
+    background-image : url('/webcdr/templates/mss/images/header_gradient.png');
     background-repeat : repeat-x;
     margin : 0;
-    padding-left : 10%;
+    padding-left : 5%;
     padding-right : 10%;
     position : fixed;
     width : 100%;
