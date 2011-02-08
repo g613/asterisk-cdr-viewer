@@ -8,5 +8,7 @@ Install:
 
 	service restart httpd
 
+	change settings in /var/www/asterisk-cdr-viewer/include/config.inc.php
+
 	open browser with url  http://your_ip/acdr/index.php
 
