@@ -15,7 +15,7 @@ abbr[title] {
 
 body {
     background-color : #fff;
-    /* Fix for M$ IE < 7 CSS hover */ behavior : url('/webcdr+/style/csshover.htc');
+    /* Fix for M$ IE < 7 CSS hover */ behavior : url('/webcdr/style/csshover.htc');
     color : #000;
     font : 65% Verdana, Arial, Helvetica, sans-serif;
     margin : 0;
@@ -30,7 +30,7 @@ img {
 
 /* ID styles */
 #header {
-    background-image : url('/webcdr+/templates/mss/images/ff6600/header_gradient.png');
+    background-image : url('/webcdr/templates/mss/images/ff6600/header_gradient.png');
     background-repeat : repeat-x;
     margin : 0;
     padding-left : 10%;
@@ -157,3 +157,8 @@ img {
     text-align : center;
   }
 
+.right {
+    padding-right : 80px;
+    text-align : right;
+    font-size: 9pt;
+  }

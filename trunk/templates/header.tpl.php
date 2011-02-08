@@ -9,7 +9,7 @@
 <body>
 <table id="header">
   <tr>
-    <td id="header_logo" rowspan="2"><a href="/" title="Home"><img src="templates/mss/images/ff6600/logo.png" alt="Messinet Secure Services" /></a></td>
+    <td id="header_logo" rowspan="2"><a href="/" title="Home"><img src="templates/mss/images/asterisk.gif" alt="Asterisk CDR Viewer" /></a></td>
     <td id="header_title">Messinet Secure Services</td>
   </tr>
   <tr>
