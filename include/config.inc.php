@@ -1,10 +1,5 @@
 <?php
-/* Time Zone Configuration */
-$tz = 'America/Chicago';
-#date_default_timezone_set($tz);
 
-/* PostgreSQL Database Configuration */
-/* An empty $db_host value will use the local Unix socket. */
 $db_host = 'localhost';
 $db_port = '3306';
 $db_user = 'cdrasterisk';
@@ -12,8 +7,8 @@ $db_pass = 'astcdr123';
 $db_name = 'cdrasterisk';
 $db_table_name = 'cdr';
 
-/* $db_result_limit is the PostgreSQL 'LIMIT' appended to the query */
-$db_result_limit = '200';
+/* $db_result_limit is the 'LIMIT' appended to the query */
+$db_result_limit = '100';
 
 /* step */
 $h_step = 30;

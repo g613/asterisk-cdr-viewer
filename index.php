@@ -48,15 +48,18 @@ if ( empty($_POST['dst']) ) {
 }
 
 $date_range = "calldate BETWEEN $startdate AND $enddate";
-$mod_vars['channel'][] = empty($_POST['channel']) ? NULL : $_POST['channel'];
-$mod_vars['channel'][] = empty($_POST['channel_mod']) ? NULL : $_POST['channel_mod'];
-$mod_vars['channel'][] = empty($_POST['channel_neg']) ? NULL : $_POST['channel_neg'];
+$mod_vars['channel'][] = empty($_POST['src_channel']) ? NULL : $_POST['src_channel'];
+$mod_vars['channel'][] = empty($_POST['src_channel_mod']) ? NULL : $_POST['src_channel_mod'];
+$mod_vars['channel'][] = empty($_POST['src_channel_neg']) ? NULL : $_POST['src_channel_neg'];
 $mod_vars['src'][] = $src_number;
 $mod_vars['src'][] = empty($_POST['src_mod']) ? NULL : $_POST['src_mod'];
 $mod_vars['src'][] = empty($_POST['src_neg']) ? NULL : $_POST['src_neg'];
 $mod_vars['clid'][] = empty($_POST['clid']) ? NULL : $_POST['clid'];
 $mod_vars['clid'][] = empty($_POST['clid_mod']) ? NULL : $_POST['clid_mod'];
 $mod_vars['clid'][] = empty($_POST['clid_neg']) ? NULL : $_POST['clid_neg'];
+$mod_vars['dstchannel'][] = empty($_POST['dst_channel']) ? NULL : $_POST['dst_channel'];
+$mod_vars['dstchannel'][] = empty($_POST['dst_channel_mod']) ? NULL : $_POST['dst_channel_mod'];
+$mod_vars['dstchannel'][] = empty($_POST['dst_channel_neg']) ? NULL : $_POST['dst_channel_neg'];
 $mod_vars['dst'][] = $dst_number;
 $mod_vars['dst'][] = empty($_POST['dst_mod']) ? NULL : $_POST['dst_mod'];
 $mod_vars['dst'][] = empty($_POST['dst_neg']) ? NULL : $_POST['dst_neg'];
@@ -113,7 +116,7 @@ $sort = empty($_POST['sort']) ? 'DESC' : $_POST['sort'];
 $group = empty($_POST['group']) ? 'day' : $_POST['group'];
 
 // Build the "WHERE" part of the query
-$where = "WHERE $date_range $uniqueid $channel $src $clid $dst $userfield $accountcode $disposition $duration";
+$where = "WHERE $date_range $uniqueid $channel $dstchannel $src $clid $dst $userfield $accountcode $disposition $duration";
 
 // Connecting, selecting database
 
@@ -141,7 +144,7 @@ if ( isset($result) ) {
 }
 
 if ( $tot_calls_raw ) {
-	echo '<p class="center title">Call Detail Record Search Returned '. $tot_calls_raw .' Calls </p><table class="cdr">';
+	echo '<p class="center title">Call Detail Record - Search Returned '. $tot_calls_raw .' Calls </p><table class="cdr">';
 	
 	$i = $h_step - 1;
 	while ($row = mysql_fetch_array($result, MYSQL_ASSOC)) {
@@ -152,11 +155,11 @@ if ( $tot_calls_raw ) {
 			<th class="record_col">Call Date</th>
 			<th class="record_col">File</th>
 			<th class="record_col">System</th>
-			<th class="record_col">Channel</th>
+			<th class="record_col">Src Channel</th>
 			<th class="record_col">Source</th>
 			<th class="record_col">Application</th>
 			<th class="record_col">Destination</th>
-			<th class="record_col">Destination Channel</th>
+			<th class="record_col">Dst Channel</th>
 			<th class="record_col">Disposition</th>
 			<th class="record_col">Duration</th>
 			<th class="record_col">Userfield</th>
@@ -196,50 +199,51 @@ if ( isset($result) ) {
 
 echo '<a id="Graph"></a>';
 
+//NEW GRAPHS
+$group_by_field = $group;
+
+switch ($group) {
+	case "accountcode":
+		$graph_col_title = 'Account Code';
+	case "dst":
+		$graph_col_title = 'Destination Number';
+	case "src":
+		$graph_col_title = 'Source Number';
+	case "userfield":
+		$graph_col_title = 'User Field';
+	break;
+	case "hour":
+		$group_by_field = "DATE_FORMAT(calldate, '%Y-%m-%d %H')";
+		$graph_col_title = 'Hour';
+	break;
+	case "hour_of_day":
+		$group_by_field = "DATE_FORMAT(calldate, '%H')";
+		$graph_col_title = 'Hour of day';
+	break;
+	case "month":
+		$group_by_field = "DATE_FORMAT(calldate, '%Y-%m')";
+		$graph_col_title = 'Month';
+	break;
+	case "day_of_week":
+		$group_by_field = "DATE_FORMAT(calldate, '%w - %W')";
+		$graph_col_title = 'Day of week';
+	break;
+	case "minutes1":
+		$group_by_field = "DATE_FORMAT(calldate, '%Y-%m-%d %H:%i')";
+		$graph_col_title = 'Minute';
+	break;
+	case "minutes10":
+		$group_by_field = "CONCAT(SUBSTR(DATE_FORMAT(calldate, '%Y-%m-%d %H:%i'),1,15), '0')";
+		$graph_col_title = '10 Minutes';
+	break;
+	case "day":
+	default:
+		$group_by_field = "DATE_FORMAT(calldate, '%Y-%m-%d')";
+		$graph_col_title = 'Day';
+}
+
 if ( isset($_POST['need_chart']) && $_POST['need_chart'] == 'true' ) {
-	//NEW GRAPHS
-	$query2 = "SELECT $group, count(*) AS total_calls, sum(duration) AS total_duration FROM $db_name.$db_table_name $where GROUP BY $group ORDER BY $group ASC LIMIT $result_limit";
-
-	switch ($group) {
-		case "accountcode":
-			$graph_col_title = 'Account Code';
-		case "dst":
-			$graph_col_title = 'Destination Number';
-		case "src":
-			$graph_col_title = 'Source Number';
-		case "userfield":
-			$graph_col_title = 'User Field';
-		break;
-		case "hour":
-			$query2 = "SELECT DATE_FORMAT(calldate, '%Y-%m-%d %H') AS hour, count(*) AS total_calls, sum(duration) AS total_duration FROM $db_name.$db_table_name $where GROUP BY DATE_FORMAT(calldate, '%Y-%m-%d %H') ORDER BY hour ASC LIMIT $result_limit";
-			$graph_col_title = 'Hour';
-		break;
-		case "hour_of_day":
-			$query2 = "SELECT DATE_FORMAT(calldate, '%H') AS hour, count(*) AS total_calls, sum(duration) AS total_duration FROM $db_name.$db_table_name $where GROUP BY DATE_FORMAT(calldate, '%H') ORDER BY hour ASC LIMIT $result_limit";
-			$graph_col_title = 'Hour of day';
-		break;
-		case "month":
-			$query2 = "SELECT DATE_FORMAT(calldate, '%Y-%m') AS month, count(*) AS total_calls, sum(duration) AS total_duration FROM $db_name.$db_table_name $where GROUP BY DATE_FORMAT(calldate, '%Y-%m') ORDER BY month ASC LIMIT $result_limit";
-			$graph_col_title = 'Month';
-		break;
-		case "day_of_week":
-			$query2 = "SELECT DATE_FORMAT(calldate, '%W') AS day, count(*) AS total_calls, sum(duration) AS total_duration FROM $db_name.$db_table_name $where GROUP BY DATE_FORMAT(calldate, '%W') ORDER BY day ASC LIMIT $result_limit";
-			$graph_col_title = 'Day of week';
-		break;
-		case "minutes1":
-			$query2 = "SELECT DATE_FORMAT(calldate, '%Y-%m-%d %H:%i') AS minutes, count(*) AS total_calls, sum(duration) AS total_duration FROM $db_name.$db_table_name $where GROUP BY DATE_FORMAT(calldate, '%Y-%m-%d %H:%i')  ORDER BY minutes ASC LIMIT $result_limit";
-			$graph_col_title = 'Minute';
-		break;
-		case "minutes10":
-			$query2 = "SELECT CONCAT(SUBSTR(DATE_FORMAT(calldate, '%Y-%m-%d %H:%i'),1,15), '0') AS minutes, count(*) AS total_calls, sum(duration) AS total_duration FROM $db_name.$db_table_name $where GROUP BY CONCAT(SUBSTR(DATE_FORMAT(calldate, '%Y-%m-%d %H:%i'),1,15), '0') ORDER BY minutes ASC LIMIT $result_limit";
-			$graph_col_title = '10 Minutes';
-		break;
-		case "day":
-		default:
-			$query2 = "SELECT DATE_FORMAT(calldate, '%Y-%m-%d') AS day, count(*) AS total_calls, sum(duration) AS total_duration FROM $db_name.$db_table_name $where GROUP BY DATE_FORMAT(calldate, '%Y-%m-%e') ORDER BY day ASC LIMIT $result_limit";
-			$graph_col_title = 'Day';
-	}
-
+	$query2 = "SELECT $group_by_field AS group_by_field, count(*) AS total_calls, sum(duration) AS total_duration FROM $db_name.$db_table_name $where GROUP BY group_by_field ORDER BY group_by_field ASC LIMIT $result_limit";
 	$result2 = mysql_query($query2) or die('Query failed: ' . mysql_error());
 
 	$tot_calls = 0;
@@ -261,8 +265,10 @@ if ( isset($_POST['need_chart']) && $_POST['need_chart'] == 'true' ) {
 		array_push($result_array,$row);
 	}
 	$tot_duration = sprintf('%02d', intval($tot_duration_secs/60)).':'.sprintf('%02d', intval($tot_duration_secs%60));
-	
-	echo '<p class="center title">Call Detail Record Usage Graph by '.$graph_col_title.'</p><table class="cdr">';
+
+	if ( $tot_calls ) {
+		echo '<p class="center title">Call Detail Record Call - Graph by '.$graph_col_title.'</p><table class="cdr">';
+	}
 
 	$h_step = (int)($h_step/2);
 
@@ -274,12 +280,12 @@ if ( isset($_POST['need_chart']) && $_POST['need_chart'] == 'true' ) {
 			<tr>
 			<th class="end_col"><?php echo $graph_col_title ?></th>
 			<th class="center_col">Total Calls: <?php echo $tot_calls ?> / Max Calls: <?php echo $max_calls ?> / Total Duration: <?php echo $tot_duration ?></th>
-	:		<th class="end_col">Average Call Time</th>
+			<th class="end_col">Average Call Time</th>
 			<th class="img_col"><a href="#CDR" title="Go to the top of the CDR table"><img src="/icons/small/back.png" alt="CDR Table" /></a></th>
 			<th class="img_col"><a href="#Graph" title="Go to the CDR Graph"><img src="/icons/small/image2.png" alt="CDR Graph" /></a></th>
 			</tr>
 			<?php
-			$i = 0;
+			/* $i = 0; */
 		}
 		$avg_call_time = sprintf('%02d', intval(($row[2]/$row[1])/60)).':'.sprintf('%02d', intval($row[2]/$row[1]%60));
 		$bar_calls = $row[1]/$max_calls*100;
