@@ -176,6 +176,17 @@ foreach ($system_name_array as $value) {
       </select>
     </td>
   </tr>
+  <tr>
+    <td><label for="Result limit">Result limit:</label></td>
+    <td>
+	<input value="<?php 
+		if (isset($_POST['limit']) ) { 
+			echo $_POST['limit'];
+		} else {
+			echo $db_result_limit;
+		 } ?>" name="limit" />
+    </td>
+  </tr>
 </table>
 </fieldset>
 <div>

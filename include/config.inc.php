@@ -1,30 +1,30 @@
 <?php
 /* Time Zone Configuration */
 $tz = 'America/Chicago';
-date_default_timezone_set($tz);
+#date_default_timezone_set($tz);
 
 /* PostgreSQL Database Configuration */
 /* An empty $db_host value will use the local Unix socket. */
-$db_host = '';
-$db_port = '5432';
-$db_user = 'apache-asterisk';
-$db_pass = 'apache-asterisk';
-$db_name = 'asterisk';
+$db_host = 'localhost';
+$db_port = '3306';
+$db_user = 'cdrasterisk';
+$db_pass = 'astcdr123';
+$db_name = 'cdrasterisk';
 $db_table_name = 'cdr';
 
 /* $db_calldate_format is the PostgreSQL date format returned */
 $db_calldate_format = 'YYYY-MM-DD HH24:MI:SS';
 
 /* $db_result_limit is the PostgreSQL 'LIMIT' appended to the query */
-$db_result_limit = '10000';
+$db_result_limit = '200';
 
 /* Asterisk Server Name & Access Configuration */
-$system_access_array['host1'] = array('user1', 'user2');
+$system_access_array['cdrasterisk'] = array('cdrasterisk');
 $system_access_array['host2'] = array('user1');
 $system_access_array['hostN'] = array('user1', 'userN');
 
 /* Kerberos Single Sign On */
-$krb_sso = TRUE;
+$krb_sso = FALSE;
 
 /* $system_monitor_dir is the directory where call recordings are stored */
 $system_monitor_dir = '/var/spool/asterisk/monitor';
