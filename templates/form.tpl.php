@@ -1,3 +1,8 @@
+<div id="main">
+<table class="cdr">
+<tr>
+<td>
+
 <form action="index.php" method="post" enctype="application/x-www-form-urlencoded">
 <fieldset>
 <legend class="title">Call Detail Record Search</legend>
@@ -60,26 +65,9 @@ for ( $i = 2000; $i <= date('Y'); $i++) {
     </td>
   </tr>
   <tr>
-    <td><input <?php if (isset($_POST['order']) && $_POST['order'] == 'uniqueid') { echo 'checked="checked"'; } ?> type="radio" name="order" value="uniqueid" />&nbsp;<label for="uniqueid">System Name:</label></td>
-    <td>
-      <select name="uniqueid" id="uniqueid">
-        <option <?php if (isset($_POST['uniqueid']) && $_POST['uniqueid'] == 'all') { echo 'selected="selected"'; } ?> value="all">All Systems</option>
-<?php
-foreach ($system_name_array as $value) {
-  if (isset($_POST['uniqueid']) && $_POST['uniqueid'] == "$value") {
-    echo "        <option value=\"$value\" selected=\"selected\">$value</option>\n";
-  } else {
-    echo "        <option value=\"$value\">$value</option>\n";
-  }
-}
-?>
-      </select>
-    </td>
-  </tr>
-  <tr>
     <td><input <?php if (isset($_POST['order']) && $_POST['order'] == 'channel') { echo 'checked="checked"'; } ?> type="radio" name="order" value="channel" />&nbsp;<label for="channel">Channel:</label></td>
     <td><input type="text" name="channel" id="channel" value="<?php if (isset($_POST['channel'])) { echo $_POST['channel']; } ?>" />
-      Not:<input <?php if ( $_POST['channel_neg'] == 'true' ) { echo 'checked="checked"'; } ?> type="checkbox" name="channel_neg" value="true" />
+      Not:<input <?php if ( isset($_POST['channel_neg'] ) && $_POST['channel_neg'] == 'true' ) { echo 'checked="checked"'; } ?> type="checkbox" name="channel_neg" value="true" />
       Begins With:<input <?php if (empty($_POST['channel_mod']) || $_POST['channel_mod'] == 'begins_with') { echo 'checked="checked"'; } ?> type="radio" name="channel_mod" value="begins_with" />
       Contains:<input <?php if (isset($_POST['channel_mod']) && $_POST['channel_mod'] == 'contains') { echo 'checked="checked"'; } ?> type="radio" name="channel_mod" value="contains" />
       Ends With:<input <?php if (isset($_POST['channel_mod']) && $_POST['channel_mod'] == 'ends_with') { echo 'checked="checked"'; } ?> type="radio" name="channel_mod" value="ends_with" />
@@ -89,7 +77,7 @@ foreach ($system_name_array as $value) {
   <tr>
     <td><input <?php if (isset($_POST['order']) && $_POST['order'] == 'src') { echo 'checked="checked"'; } ?> type="radio" name="order" value="src" />&nbsp;<label for="src">Source:</label></td>
     <td><input type="text" name="src" id="src" value="<?php if (isset($_POST['src'])) { echo $_POST['src']; } ?>" />
-      Not:<input <?php if ( $_POST['src_neg'] == 'true' ) { echo 'checked="checked"'; } ?> type="checkbox" name="src_neg" value="true" />
+      Not:<input <?php if ( isset($_POST['src_neg'] ) && $_POST['src_neg'] == 'true' ) { echo 'checked="checked"'; } ?> type="checkbox" name="src_neg" value="true" />
       Begins With:<input <?php if (empty($_POST['src_mod']) || $_POST['src_mod'] == 'begins_with') { echo 'checked="checked"'; } ?> type="radio" name="src_mod" value="begins_with" />
       Contains:<input <?php if (isset($_POST['src_mod']) && $_POST['src_mod'] == 'contains') { echo 'checked="checked"'; } ?> type="radio" name="src_mod" value="contains" />
       Ends With:<input <?php if (isset($_POST['src_mod']) && $_POST['src_mod'] == 'ends_with') { echo 'checked="checked"'; } ?> type="radio" name="src_mod" value="ends_with" />
@@ -99,7 +87,7 @@ foreach ($system_name_array as $value) {
   <tr>
     <td><input <?php if (isset($_POST['order']) && $_POST['order'] == 'clid') { echo 'checked="checked"'; } ?> type="radio" name="order" value="clid" />&nbsp;<label for="clid">Caller*ID</label></td>
     <td><input type="text" name="clid" id="clid" value="<?php if (isset($_POST['clid'])) { echo $_POST['clid']; } ?>" />
-      Not:<input <?php if ( $_POST['clid_neg'] == 'true' ) { echo 'checked="checked"'; } ?> type="checkbox" name="clid_neg" value="true" />
+      Not:<input <?php if ( isset($_POST['clid_neg'] ) && $_POST['clid_neg'] == 'true' ) { echo 'checked="checked"'; } ?> type="checkbox" name="clid_neg" value="true" />
       Begins With:<input <?php if (empty($_POST['clid_mod']) || $_POST['clid_mod'] == 'begins_with') { echo 'checked="checked"'; } ?> type="radio" name="clid_mod" value="begins_with" />
       Contains:<input <?php if (isset($_POST['clid_mod']) && $_POST['clid_mod'] == 'contains') { echo 'checked="checked"'; } ?> type="radio" name="clid_mod" value="contains" />
       Ends With:<input <?php if (isset($_POST['clid_mod']) && $_POST['clid_mod'] == 'ends_with') { echo 'checked="checked"'; } ?> type="radio" name="clid_mod" value="ends_with" />
@@ -109,7 +97,7 @@ foreach ($system_name_array as $value) {
   <tr>
     <td><input <?php if (isset($_POST['order']) && $_POST['order'] == 'dst') { echo 'checked="checked"'; } ?> type="radio" name="order" value="dst" />&nbsp;<label for="dst">Destination:</label></td>
     <td><input type="text" name="dst" id="dst" value="<?php if (isset($_POST['dst'])) { echo $_POST['dst']; } ?>" />
-      Not:<input <?php if ( $_POST['dst_neg'] == 'true' ) { echo 'checked="checked"'; } ?> type="checkbox" name="dst_neg" value="true" />
+      Not:<input <?php if ( isset($_POST['dst_neg'] ) &&  $_POST['dst_neg'] == 'true' ) { echo 'checked="checked"'; } ?> type="checkbox" name="dst_neg" value="true" />
       Begins With:<input <?php if (empty($_POST['dst_mod']) || $_POST['dst_mod'] == 'begins_with') { echo 'checked="checked"'; } ?> type="radio" name="dst_mod" value="begins_with" />
       Contains:<input <?php if (isset($_POST['dst_mod']) && $_POST['dst_mod'] == 'contains') { echo 'checked="checked"'; } ?> type="radio" name="dst_mod" value="contains" />
       Ends With:<input <?php if (isset($_POST['dst_mod']) && $_POST['dst_mod'] == 'ends_with') { echo 'checked="checked"'; } ?> type="radio" name="dst_mod" value="ends_with" />
@@ -119,7 +107,7 @@ foreach ($system_name_array as $value) {
   <tr>
     <td><input <?php if (isset($_POST['order']) && $_POST['order'] == 'userfield') { echo 'checked="checked"'; } ?> type="radio" name="order" value="userfield" />&nbsp;<label for="userfield">Userfield:</label></td>
     <td><input type="text" name="userfield" id="userfield" value="<?php if (isset($_POST['userfield'])) { echo $_POST['userfield']; } ?>" />
-      Not:<input <?php if ( $_POST['userfield_neg'] == 'true' ) { echo 'checked="checked"'; } ?> type="checkbox" name="userfield_neg" value="true" />
+      Not:<input <?php if (  isset($_POST['userfield_neg'] ) && $_POST['userfield_neg'] == 'true' ) { echo 'checked="checked"'; } ?> type="checkbox" name="userfield_neg" value="true" />
       Begins With:<input <?php if (empty($_POST['userfield_mod']) || $_POST['userfield_mod'] == 'begins_with') { echo 'checked="checked"'; } ?> type="radio" name="userfield_mod" value="begins_with" />
       Contains:<input <?php if (isset($_POST['userfield_mod']) && $_POST['userfield_mod'] == 'contains') { echo 'checked="checked"'; } ?> type="radio" name="userfield_mod" value="contains" />
       Ends With:<input <?php if (isset($_POST['userfield_mod']) && $_POST['userfield_mod'] == 'ends_with') { echo 'checked="checked"'; } ?> type="radio" name="userfield_mod" value="ends_with" />
@@ -129,7 +117,7 @@ foreach ($system_name_array as $value) {
   <tr>
     <td><input <?php if (isset($_POST['order']) && $_POST['order'] == 'accountcode') { echo 'checked="checked"'; } ?> type="radio" name="order" value="accountcode" />&nbsp;<label for="userfield">Account Code:</label></td>
     <td><input type="text" name="accountcode" id="accountcode" value="<?php if (isset($_POST['accountcode'])) { echo $_POST['accountcode']; } ?>" />
-      Not:<input <?php if ( $_POST['accountcode_neg'] == 'true' ) { echo 'checked="checked"'; } ?> type="checkbox" name="accountcode_neg" value="true" />
+      Not:<input <?php if ( isset($_POST['accountcode_neg'] ) &&  $_POST['accountcode_neg'] == 'true' ) { echo 'checked="checked"'; } ?> type="checkbox" name="accountcode_neg" value="true" />
       Begins With:<input <?php if (empty($_POST['accountcode_mod']) || $_POST['accountcode_mod'] == 'begins_with') { echo 'checked="checked"'; } ?> type="radio" name="accountcode_mod" value="begins_with" />
       Contains:<input <?php if (isset($_POST['accountcode_mod']) && $_POST['accountcode_mod'] == 'contains') { echo 'checked="checked"'; } ?> type="radio" name="accountcode_mod" value="contains" />
       Ends With:<input <?php if (isset($_POST['accountcode_mod']) && $_POST['accountcode_mod'] == 'ends_with') { echo 'checked="checked"'; } ?> type="radio" name="accountcode_mod" value="ends_with" />
@@ -148,7 +136,7 @@ foreach ($system_name_array as $value) {
   <tr>
     <td><input <?php if (isset($_POST['order']) && $_POST['order'] == 'disposition') { echo 'checked="checked"'; } ?> type="radio" name="order" value="disposition" />&nbsp;<label for="disposition">Disposition:</label></td>
     <td>
-      Not:<input <?php if ( $_POST['disposition_neg'] == 'true' ) { echo 'checked="checked"'; } ?> type="checkbox" name="disposition_neg" value="true" />
+      Not:<input <?php if ( isset($_POST['dispositio_neg'] ) && $_POST['disposition_neg'] == 'true' ) { echo 'checked="checked"'; } ?> type="checkbox" name="disposition_neg" value="true" />
       <select name="disposition" id="disposition">
         <option <?php if (empty($_POST['disposition']) || $_POST['disposition'] == 'all') { echo 'selected="selected"'; } ?> value="all">All Dispositions</option>
         <option <?php if (isset($_POST['disposition']) && $_POST['disposition'] == 'ANSWERED') { echo 'selected="selected"'; } ?> value="ANSWERED">Answered</option>
@@ -173,6 +161,8 @@ foreach ($system_name_array as $value) {
         </optgroup>
         <optgroup label="Date/Time">
           <option <?php if (isset($_POST['group']) && $_POST['group'] == 'hour') { echo 'selected="selected"'; } ?> value="hour">Hour</option>
+          <option <?php if (isset($_POST['group']) && $_POST['group'] == 'hour_of_day') { echo 'selected="selected"'; } ?> value="hour_of_day">Hour of day</option>
+          <option <?php if (isset($_POST['group']) && $_POST['group'] == 'day_of_week') { echo 'selected="selected"'; } ?> value="day_of_week">Day of week</option>
           <option <?php if (empty($_POST['group']) || $_POST['group'] == 'day') { echo 'selected="selected"'; } ?> value="day">Day</option>
           <option <?php if (isset($_POST['group']) && $_POST['group'] == 'month') { echo 'selected="selected"'; } ?> value="month">Month</option>
         </optgroup>
@@ -184,8 +174,12 @@ foreach ($system_name_array as $value) {
     </td>
   </tr>
   <tr>
-	<td>CSV: </td>
-	<td><input type="checkbox" name="need_csv" value="true" /></td>
+	<td>Generate: </td>
+	<td>
+		HTML: <input <?php if (empty($_POST['need_html']) || $_POST['need_html'] == 'true') { echo 'checked="checked"'; } ?> type="checkbox" name="need_html" value="true" /> &nbsp; &nbsp; &nbsp; &nbsp;
+		CSV file: <input type="checkbox" name="need_csv" value="true" /> &nbsp; &nbsp; &nbsp; &nbsp;
+		CHART: <input checked="checked" type="checkbox" name="need_chart" value="true" />
+	</td>
   </tr>
   <tr>
     <td><label for="Result limit">Result limit:</label></td>
@@ -195,13 +189,20 @@ foreach ($system_name_array as $value) {
 			echo $_POST['limit'];
 		} else {
 			echo $db_result_limit;
-		 } ?>" name="limit" />
+		 } ?>" name="limit" size="6" />
     </td>
   </tr>
 </table>
 </fieldset>
 <div>
-  <input type="hidden" name="posted" value="TRUE" />
   <input type="submit" value="Search" />
 </div>
 </form>
+</td>
+<td>
+&nbsp;
+</td>
+</tr>
+</table>
+<a id="CDR"></a>
+

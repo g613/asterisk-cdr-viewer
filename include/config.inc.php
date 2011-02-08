@@ -12,25 +12,23 @@ $db_pass = 'astcdr123';
 $db_name = 'cdrasterisk';
 $db_table_name = 'cdr';
 
-/* $db_calldate_format is the PostgreSQL date format returned */
-$db_calldate_format = 'YYYY-MM-DD HH24:MI:SS';
-
 /* $db_result_limit is the PostgreSQL 'LIMIT' appended to the query */
 $db_result_limit = '200';
 
-/* Asterisk Server Name & Access Configuration */
-$system_access_array['cdrasterisk'] = array('cdrasterisk');
-$system_access_array['host2'] = array('user1');
-$system_access_array['hostN'] = array('user1', 'userN');
-
-/* Kerberos Single Sign On */
-$krb_sso = FALSE;
+/* step */
+$h_step = 30;
 
 /* $system_monitor_dir is the directory where call recordings are stored */
 $system_monitor_dir = '/var/spool/asterisk/monitor';
 
 /* $system_fax_archive_dir is the directory where sent/received fax images are stored */
 $system_fax_archive_dir = '/var/spool/asterisk/fax-gw/archive';
+
+/* system tmp */
+$system_tmp_dir = '/tmp';
+
+/* audio file format */
+$system_audio_format = 'wav';
 
 /* Reverse lookup URL where "%n" is replace with the destination number */
 $rev_lookup_url = 'http://www.whitepages.com/search/ReversePhone?full_phone=%n';
@@ -42,10 +40,10 @@ function formatCallDate($calldate) {
 }
 
 function formatUniqueID($uniqueid) {
-  global $system_monitor_dir, $system_fax_archive_dir;
+  global $system_monitor_dir, $system_fax_archive_dir, $system_audio_format;
   $system = explode('-', $uniqueid, 2);
-  if (file_exists("$system_monitor_dir/$uniqueid.wav")) {
-    echo "    <td class=\"record_col\"><a href=\"download.php?audio=$uniqueid.wav\" title=\"Listen to call recording\"><img src=\"/icons/small/sound.png\" alt=\"Call recording\" /></a></td>\n";
+  if (file_exists("$system_monitor_dir/$uniqueid.$system_audio_format")) {
+    echo "    <td class=\"record_col\"><a href=\"download.php?audio=$uniqueid.$system_audio_format\" title=\"Listen to call recording\"><img src=\"/icons/small/sound.png\" alt=\"Call recording\" /></a></td>\n";
     echo "    <td class=\"record_col\"><abbr title=\"UniqueID: $uniqueid\">$system[0]</abbr></td>\n";
   } elseif (file_exists("$system_fax_archive_dir/$uniqueid.tif")) {
     echo "    <td class=\"record_col\"><a href=\"download.php?fax=$uniqueid.tif\" title=\"View FAX image\"><img src=\"/icons/small/text.png\" alt=\"FAX image\" /></a></td>\n";

@@ -1,10 +1,12 @@
 <?php
-$system_monitor_dir = '/var/spool/asterisk/monitor';
-$system_fax_archive_dir = '/var/spool/asterisk/fax-gw/archive';
+
+require_once 'include/config.inc.php';
+
 header('Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0');
 header('Pragma: no-cache');
+
 if (isset($_GET['audio'])) {
-  header('Content-Type: application/ogg');
+  header("Content-Type: application/$system_audio_format");
   header('Content-Transfer-Encoding: binary');
   header('Content-Length: '.filesize("$system_monitor_dir/$_GET[audio]"));
   header("Content-Disposition: attachment; filename=\"$_GET[audio]\"");
@@ -20,7 +22,8 @@ if (isset($_GET['audio'])) {
   header('Content-Transfer-Encoding: binary');
   header('Content-Length: '.filesize("/tmp/$_GET[csv]"));
   header("Content-Disposition: attachment; filename=\"$_GET[csv]\"");
-  readfile("/tmp/$_GET[csv]");
+  readfile("$system_tmp_dir/$_GET[csv]");
 }
+
 exit();
 ?>
