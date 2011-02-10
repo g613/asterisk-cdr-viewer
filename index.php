@@ -205,10 +205,13 @@ $group_by_field = $group;
 switch ($group) {
 	case "accountcode":
 		$graph_col_title = 'Account Code';
+	break;
 	case "dst":
 		$graph_col_title = 'Destination Number';
+	break;
 	case "src":
 		$graph_col_title = 'Source Number';
+	break;
 	case "userfield":
 		$graph_col_title = 'User Field';
 	break;
@@ -217,7 +220,7 @@ switch ($group) {
 		$graph_col_title = 'Hour';
 	break;
 	case "hour_of_day":
-		$group_by_field = "DATE_FORMAT(calldate, '%H')";
+		$group_by_field = "DATE_FORMAT( calldate, '%H' )";
 		$graph_col_title = 'Hour of day';
 	break;
 	case "month":
@@ -225,7 +228,7 @@ switch ($group) {
 		$graph_col_title = 'Month';
 	break;
 	case "day_of_week":
-		$group_by_field = "DATE_FORMAT(calldate, '%w - %W')";
+		$group_by_field = "DATE_FORMAT( calldate, '%w - %W' )";
 		$graph_col_title = 'Day of week';
 	break;
 	case "minutes1":
@@ -247,9 +250,9 @@ if ( isset($_POST['need_chart']) && $_POST['need_chart'] == 'true' ) {
 	$result2 = mysql_query($query2) or die('Query failed: ' . mysql_error());
 
 	$tot_calls = 0;
-	$tot_duration = '0';
-	$max_calls = '0';
-	$max_duration = '0';
+	$tot_duration = 0;
+	$max_calls = 0;
+	$max_duration = 0;
 	$tot_duration_secs = 0;
 	$result_array = array();
 
@@ -267,39 +270,30 @@ if ( isset($_POST['need_chart']) && $_POST['need_chart'] == 'true' ) {
 	$tot_duration = sprintf('%02d', intval($tot_duration_secs/60)).':'.sprintf('%02d', intval($tot_duration_secs%60));
 
 	if ( $tot_calls ) {
-		echo '<p class="center title">Call Detail Record Call - Graph by '.$graph_col_title.'</p><table class="cdr">';
-	}
-
-	$h_step = (int)($h_step/2);
-
-	$i = $h_step - 1;
-	foreach ($result_array as $row) {
-		++$i;
-		if ($i == $h_step) {
-			?>
-			<tr>
-			<th class="end_col"><?php echo $graph_col_title ?></th>
-			<th class="center_col">Total Calls: <?php echo $tot_calls ?> / Max Calls: <?php echo $max_calls ?> / Total Duration: <?php echo $tot_duration ?></th>
+		echo '<p class="center title">Call Detail Record - Call Graph by '.$graph_col_title.'</p><table class="cdr">
+		<tr>
+			<th class="end_col">'. $graph_col_title . '</th>
+			<th class="center_col">Total Calls: '. $tot_calls .' / Max Calls: '. $max_calls .' / Total Duration: '. $tot_duration .'</th>
 			<th class="end_col">Average Call Time</th>
 			<th class="img_col"><a href="#CDR" title="Go to the top of the CDR table"><img src="/icons/small/back.png" alt="CDR Table" /></a></th>
 			<th class="img_col"><a href="#Graph" title="Go to the CDR Graph"><img src="/icons/small/image2.png" alt="CDR Graph" /></a></th>
-			</tr>
-			<?php
-			/* $i = 0; */
+		</tr>';
+	
+		foreach ($result_array as $row) {
+			$avg_call_time = sprintf('%02d', intval(($row[2]/$row[1])/60)).':'.sprintf('%02d', intval($row[2]/$row[1]%60));
+			$bar_calls = $row[1]/$max_calls*100;
+			$percent_tot_calls = intval($row[1]/$tot_calls*100);
+			$bar_duration = $row[2]/$max_duration*100;
+			$percent_tot_duration = intval($row[2]/$tot_duration_secs*100);
+			$html_duration = sprintf('%02d', intval($row[2]/60)).':'.sprintf('%02d', intval($row[2]%60));
+			echo "  <tr>\n";
+			echo "    <td class=\"end_col\">$row[0]</td><td class=\"center_col\"><div class=\"bar_calls\" style=\"width : $bar_calls%\">$row[1] - $percent_tot_calls%</div><div class=\"bar_duration\" style=\"width : $bar_duration%\">$html_duration - $percent_tot_duration%</div></td><td class=\"end_col\">$avg_call_time</td>\n";
+			echo "    <td></td>\n";
+			echo "    <td></td>\n";
+			echo "  </tr>\n";
 		}
-		$avg_call_time = sprintf('%02d', intval(($row[2]/$row[1])/60)).':'.sprintf('%02d', intval($row[2]/$row[1]%60));
-		$bar_calls = $row[1]/$max_calls*100;
-		$percent_tot_calls = intval($row[1]/$tot_calls*100);
-		$bar_duration = $row[2]/$max_duration*100;
-		$percent_tot_duration = intval($row[2]/$tot_duration_secs*100);
-		$duration = sprintf('%02d', intval($row[2]/60)).':'.sprintf('%02d', intval($row[2]%60));
-		echo "  <tr>\n";
-		echo "    <td class=\"end_col\">$row[0]</td><td class=\"center_col\"><div class=\"bar_calls\" style=\"width : $bar_calls%\">$row[1] - $percent_tot_calls%</div><div class=\"bar_duration\" style=\"width : $bar_duration%\">$duration - $percent_tot_duration%</div></td><td class=\"end_col\">$avg_call_time</td>\n";
-		echo "    <td></td>\n";
-		echo "    <td></td>\n";
-		echo "  </tr>\n";
+		echo "</table>";
 	}
-	echo "</table>";
 	mysql_free_result($result2);
 }
 ?>

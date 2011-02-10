@@ -66,9 +66,9 @@ for ( $i = 2000; $i <= date('Y'); $i++) {
 }
 ?>
 </select>
-<input type="text" name="stophour" id="stophour" size="2" maxlength="2" value="<?php if (isset($_POST['stophour'])) { echo $_POST['stophour']; } else { echo '23'; } ?>" />
+<input type="text" name="endhour" id="endhour" size="2" maxlength="2" value="<?php if (isset($_POST['endhour'])) { echo $_POST['endhour']; } else { echo '23'; } ?>" />
 :
-<input type="text" name="stopmin" id="stopmin" size="2" maxlength="2" value="<?php if (isset($_POST['stopmin'])) { echo $_POST['stopmin']; } else { echo '59'; } ?>" />
+<input type="text" name="endmin" id="endmin" size="2" maxlength="2" value="<?php if (isset($_POST['endmin'])) { echo $_POST['endmin']; } else { echo '59'; } ?>" />
 </td>
 <td rowspan="10" valign='top' align='right'>
 <fieldset>
@@ -77,10 +77,9 @@ for ( $i = 2000; $i <= date('Y'); $i++) {
 <tr>
 <td>Report type : </td>
 <td>
-<input <?php if (empty($_POST['need_html']) || $_POST['need_html'] == 'true') { echo 'checked="checked"'; } ?> type="checkbox" name="need_html" value="true" /> : CDR search<br />
-<input type="checkbox" name="need_csv" value="true" /> : CSV file<br/>
-<input checked="checked" type="checkbox" name="need_chart" value="true" /> : Call Chart<br />
-<!--<input checked="checked" type="checkbox" name="need_chart2" value="true" /> : Concurent Calls<br />-->
+<input <?php if ( (empty($_POST['need_html']) && empty($_POST['need_chart']) && empty($_POST['need_chart_cc']) && empty($_POST['need_csv'])) || ( ! empty($_POST['need_html']) &&  $_POST['need_html'] == 'true' ) ) { echo 'checked="checked"'; } ?> type="checkbox" name="need_html" value="true" /> : CDR search<br />
+<input <?php if ( ! empty($_POST['need_csv']) && $_POST['need_csv'] == 'true' ) { echo 'checked="checked"'; } ?> type="checkbox" name="need_csv" value="true" /> : CSV file<br/>
+<input <?php if ( ! empty($_POST['need_chart']) && $_POST['need_chart'] == 'true' ) { echo 'checked="checked"'; } ?> type="checkbox" name="need_chart" value="true" /> : Call Graph<br />
 </td>
 </tr>
 <tr>
