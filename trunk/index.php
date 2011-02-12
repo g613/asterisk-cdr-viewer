@@ -14,24 +14,27 @@ if (empty($_POST['startday'])) {
 } elseif (isset($_POST['startday']) && ($_POST['startday'] > date('t', strtotime("$startyear-$startmonth")))) {
 	$startday = $_POST['startday'] = date('t', strtotime("$startyear-$startmonth"));
 } else {
-	$startday = $_POST['startday'];
+	$startday = sprintf('%02d',$_POST['startday']);
 }
-$starthour = empty($_POST['starthour']) ? '00' : $_POST['starthour'];
-$startmin = empty($_POST['startmin']) ? '00' : $_POST['startmin'];
+$starthour = empty($_POST['starthour']) ? '00' : sprintf('%02d',$_POST['starthour']);
+$startmin = empty($_POST['startmin']) ? '00' : sprintf('%02d',$_POST['startmin']);
 
 $startdate = "'$startyear-$startmonth-$startday $starthour:$startmin:00'";
+$start_timestamp = mktime( $starthour, $startmin, 59, $startmonth, $startday, $startyear );
+
 $endmonth = empty($_POST['endmonth']) ? date('m') : $_POST['endmonth'];  
 $endyear = empty($_POST['endyear']) ? date('Y') : $_POST['endyear'];  
 
 if (empty($_POST['endday']) || (isset($_POST['endday']) && ($_POST['endday'] > date('t', strtotime("$endyear-$endmonth-01"))))) {
 	$endday = $_POST['endday'] = date('t', strtotime("$endyear-$endmonth"));
 } else {
-	$endday = $_POST['endday'];
+	$endday = sprintf('%02d',$_POST['endday']);
 }
-$endhour = empty($_POST['endhour']) ? '23' : $_POST['endhour'];
-$endmin = empty($_POST['endmin']) ? '59' : $_POST['endmin'];
+$endhour = empty($_POST['endhour']) ? '23' : sprintf('%02d',$_POST['endhour']);
+$endmin = empty($_POST['endmin']) ? '59' : sprintf('%02d',$_POST['endmin']);
 
 $enddate = "'$endyear-$endmonth-$endday $endhour:$endmin:59'";
+$end_timestamp = mktime( $endhour, $endmin, 59, $endmonth, $endday, $endyear );
 
 #
 # asterisk regexp2sqllike
@@ -201,6 +204,8 @@ echo '<a id="Graph"></a>';
 
 //NEW GRAPHS
 $group_by_field = $group;
+// ConcurentCalls
+$group_by_field_php = array( '', 32, '' );
 
 switch ($group) {
 	case "accountcode":
@@ -216,32 +221,44 @@ switch ($group) {
 		$graph_col_title = 'User Field';
 	break;
 	case "hour":
-		$group_by_field = "DATE_FORMAT(calldate, '%Y-%m-%d %H')";
+		$group_by_field_php = array( '%Y-%m-%d %H', 13, '' );
+		$group_by_field = "DATE_FORMAT(calldate, '$group_by_field_php[0]')";
 		$graph_col_title = 'Hour';
 	break;
 	case "hour_of_day":
-		$group_by_field = "DATE_FORMAT( calldate, '%H' )";
+		$group_by_field_php = array('%H',2,'');
+		$group_by_field = "DATE_FORMAT(calldate, '$group_by_field_php[0]')";
 		$graph_col_title = 'Hour of day';
 	break;
+	case "week":
+		$group_by_field_php = array('%V',2,'');
+		$group_by_field = "DATE_FORMAT(calldate, '$group_by_field_php[0]') ";
+		$graph_col_title = 'Week ( Sun-Sat )';
+	break;
 	case "month":
-		$group_by_field = "DATE_FORMAT(calldate, '%Y-%m')";
+		$group_by_field_php = array('%Y-%m',7,'');
+		$group_by_field = "DATE_FORMAT(calldate, '$group_by_field_php[0]')";
 		$graph_col_title = 'Month';
 	break;
 	case "day_of_week":
+		$group_by_field_php = array('%w - %A',20,'');
 		$group_by_field = "DATE_FORMAT( calldate, '%w - %W' )";
 		$graph_col_title = 'Day of week';
 	break;
 	case "minutes1":
+		$group_by_field_php = array( '%Y-%m-%d %H:%M', 16, '' );
 		$group_by_field = "DATE_FORMAT(calldate, '%Y-%m-%d %H:%i')";
 		$graph_col_title = 'Minute';
 	break;
 	case "minutes10":
+		$group_by_field_php = array('%Y-%m-%d %H:%M',15,'0');
 		$group_by_field = "CONCAT(SUBSTR(DATE_FORMAT(calldate, '%Y-%m-%d %H:%i'),1,15), '0')";
 		$graph_col_title = '10 Minutes';
 	break;
 	case "day":
 	default:
-		$group_by_field = "DATE_FORMAT(calldate, '%Y-%m-%d')";
+		$group_by_field_php = array('%Y-%m-%d',10,'');
+		$group_by_field = "DATE_FORMAT(calldate, '$group_by_field_php[0]')";
 		$graph_col_title = 'Day';
 }
 
@@ -295,6 +312,105 @@ if ( isset($_POST['need_chart']) && $_POST['need_chart'] == 'true' ) {
 		echo "</table>";
 	}
 	mysql_free_result($result2);
+}
+if ( isset($_POST['need_chart_cc']) && $_POST['need_chart_cc'] == 'true' ) {
+	$date_range = "( (calldate BETWEEN $startdate AND $enddate) or (calldate + interval duration second  BETWEEN $startdate AND $enddate) or ( calldate + interval duration second >= $enddate AND calldate <= $startdate ) )";
+	$where = "WHERE $date_range $uniqueid $channel $dstchannel $src $clid $dst $userfield $accountcode $disposition $duration";
+	
+	$tot_calls = 0;
+	$max_calls = 0;
+	$result_array_cc = array();
+	$result_array = array();
+
+	if ( strpos($group_by_field,'DATE_FORMAT') === false ) {
+		/* not date time fields */
+		$query3 = "SELECT $group_by_field AS group_by_field, count(*) AS total_calls, unix_timestamp(calldate) AS ts, duration FROM $db_name.$db_table_name $where GROUP BY group_by_field, unix_timestamp(calldate) ORDER BY group_by_field ASC LIMIT $result_limit";
+
+		$result3 = mysql_query($query3) or die("Query failed[ $query3 ]: " . mysql_error());
+		$group_by_str = '';
+		while ($row = mysql_fetch_array($result3, MYSQL_NUM)) {
+			if ( $group_by_str != $row[0] ) {
+				$group_by_str = $row[0];
+				$result_array = array();
+			}
+			for ( $i=$row[2]; $i<=$row[2]+$row[3]; $i++ ) {
+				if ( isset($result_array[ "$i" ]) ) {
+					$result_array[ "$i" ] += $row[1];
+				} else {
+					$result_array[ "$i" ] = $row[1];
+				}
+				if ( $max_calls < $result_array[ "$i" ] ) {
+					$max_calls = $result_array[ "$i" ];
+				}
+				if ( ! isset($result_array_cc[ $row[0] ]) || $result_array_cc[ $row[0] ][1] < $result_array[ "$i" ] ) {
+					$result_array_cc[ "$row[0]" ][0] = $i;
+					$result_array_cc[ "$row[0]" ][1] = $result_array[ "$i" ];
+				}
+			}
+			$tot_calls += $row[1];
+		}
+	} else {
+		/* data fields */
+		$query3 = "SELECT unix_timestamp(calldate) AS ts, duration FROM $db_name.$db_table_name $where ORDER BY unix_timestamp(calldate) ASC LIMIT $result_limit";
+		$result3 = mysql_query($query3) or die("Query failed[ $query3 ]: " . mysql_error());
+		$group_by_str = '';
+		while ($row = mysql_fetch_array($result3, MYSQL_NUM)) {
+			$group_by_str_cur = substr(strftime($group_by_field_php[0],$row[0]),0,$group_by_field_php[1]) . $group_by_field_php[2];
+			if ( $group_by_str_cur != $group_by_str ) {
+				if ( $group_by_str ) {
+					for ( $i=$start_timestamp; $i<$row[0]; $i++ ) {
+						if ( ! isset($result_array_cc[ "$group_by_str" ]) || ( isset($result_array["$i"]) && $result_array_cc[ "$group_by_str" ][1] < $result_array["$i"] ) ) {
+							$result_array_cc[ "$group_by_str" ][0] = $i;
+							$result_array_cc[ "$group_by_str" ][1] = isset($result_array["$i"]) ? $result_array["$i"] : 0;
+						}
+						unset( $result_array[$i] );
+					}
+					$start_timestamp = $row[0];
+				}
+				$group_by_str = $group_by_str_cur;
+			}
+			for ( $i=$row[0]; $i<=$row[0]+$row[1]; $i++ ) {
+				if ( isset($result_array["$i"]) ) {
+					++$result_array["$i"];
+				} else {
+					$result_array["$i"]=1;
+				}
+				if ( $max_calls < $result_array["$i"] ) {
+					$max_calls = $result_array["$i"];
+				}
+			}
+			$tot_calls++;
+		}
+		for ( $i=$start_timestamp; $i<=$end_timestamp; $i++ ) {
+			$group_by_str = substr(strftime($group_by_field_php[0],$i),0,$group_by_field_php[1]) . $group_by_field_php[2];
+			if ( ! isset($result_array_cc[ "$group_by_str" ]) || ( isset($result_array["$i"]) && $result_array_cc[ "$group_by_str" ][1] < $result_array["$i"] ) ) {
+				$result_array_cc[ "$group_by_str" ][0] = $i;
+				$result_array_cc[ "$group_by_str" ][1] = isset($result_array["$i"]) ? $result_array["$i"] : 0;
+			}
+		}
+	}
+	if ( $tot_calls ) {
+		echo '<p class="center title">Call Detail Record - Concurent Calls by '.$graph_col_title.'</p><table class="cdr">
+		<tr>
+			<th class="end_col">'. $graph_col_title . '</th>
+			<th class="center_col">Total Calls: '. $tot_calls .' / Max Calls: '. $max_calls .'</th>
+			<th class="end_col">Time</th>
+		</tr>';
+	
+		ksort($result_array_cc);
+
+		foreach ( array_keys($result_array_cc) as $group_by_key ) {
+			$full_time = strftime( '%Y-%m-%d %H:%M:%S', $result_array_cc[ "$group_by_key" ][0] );
+			$group_by_cur = $result_array_cc[ "$group_by_key" ][1];
+			$bar_calls = $group_by_cur/$max_calls*100;
+			echo "  <tr>\n";
+			echo "    <td class=\"end_col\">$group_by_key</td><td class=\"center_col\"><div class=\"bar_calls\" style=\"width : $bar_calls%\">&nbsp;$group_by_cur</div></td><td>$full_time</td>\n";
+			echo "  </tr>\n";
+		}
+
+		echo "</table>";
+	}
+	mysql_free_result($result3);
 }
 ?>
 

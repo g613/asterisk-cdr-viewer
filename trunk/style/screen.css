@@ -1,164 +1,164 @@
 /* HTML tag styles */
 a {
-    cursor : pointer;
-  }
+	cursor : pointer;
+}
 
 
 abbr[title] {
-    border-style : none none dashed;
-    border-width : medium medium 1px;
-    border-bottom-color : #000000;
-    cursor : help;
-    white-space : nowrap;
-  }
+	border-style : none none dashed;
+	border-width : medium medium 1px;
+	border-bottom-color : #000000;
+	cursor : help;
+	 white-space : nowrap;
+}
 
 
 body {
-    background-color : #fff;
-    /* Fix for M$ IE < 7 CSS hover */ behavior : url('/webcdr/style/csshover.htc');
-    color : #000;
-    font : 65% Verdana, Arial, Helvetica, sans-serif;
-    margin : 0;
-    padding : 0;
-  }
+	background-color : #fff;
+	/* Fix for M$ IE < 7 CSS hover */ behavior : url('/acdr/style/csshover.htc');
+	color : #000;
+	font : 65% Verdana, Arial, Helvetica, sans-serif;
+	margin : 0;
+	padding : 0;
+}
 
 
 img {
-    border-width : 0;
-  }
+	border-width : 0;
+}
 
 
 /* ID styles */
 #header {
-    background-image : url('/webcdr/templates/mss/images/header_gradient.png');
-    background-repeat : repeat-x;
-    margin : 0;
-    padding-left : 5%;
-    padding-right : 10%;
-    position : fixed;
-    width : 100%;
-    z-index : 50;
+	background-image : url('/acdr/templates/images/header_gradient.png');
+	background-repeat : repeat-x;
+	margin : 0;
+	padding-left : 5%;
+	padding-right : 10%;
+	position : fixed;
+	width : 100%;
+	z-index : 50;
 }
 
 #header_logo {
-    height: 105px;
-    width: 121px;
-    vertical-align: top;
+	height: 105px;
+	width: 121px;
+	vertical-align: top;
 }
 
 #header_title {
-   color: #000000;
-   font-family: serif;
-   font-size: 32pt;
-   font-variant: small-caps;
-   font-weight: bold;
-   height: 60px;
+	color: #000000;
+	font-family: serif;
+	font-size: 32pt;
+	font-variant: small-caps;
+	font-weight: bold;
+	height: 60px;
 }
 
 #header_subtitle {
-   color: #68878a;
-   font-family: Verdana,Arial,'Bitstream Vera Sans',Helvetica,sans-serif;
-   font-size: 12pt;
-   font-weight: bold;
-   height: 60px;
-   padding-left: 10px;
-   vertical-align: top;
+	color: #68878a;
+	font-family: Verdana,Arial,'Bitstream Vera Sans',Helvetica,sans-serif;
+	font-size: 12pt;
+	font-weight: bold;
+	height: 60px;
+	padding-left: 10px;
+	vertical-align: top;
 }
 
 #main {
-   margin : 0;
-   padding-top : 115px;
+	margin : 0;
+	padding-top : 115px;
 }
 
 #footer {
-    padding : 5px;
-    border-width : 0;
-    text-align : center;
-  }
+	padding : 5px;
+	border-width : 0;
+	text-align : center;
+}
 
 
 /* Class styles */
 .bar_calls {
-    background-color : #ffa858;
-    float : none;
-    padding : 0 0 0 2px;
-  }
+	background-color : #ebeff9;
+	float : none;
+	padding : 0 0 0 2px;
+}
 
 
 .bar_duration {
-    background-color : #ffdca8;
-    float : none;
-    padding : 0 0 0 2px;
-  }
+	background-color : #67cbf5;
+	float : none;
+	padding : 0 0 0 2px;
+}
 
 
 .cdr {
-    margin : 0 5%;
-    border-width : 0;
-    white-space : nowrap;
-    width : 90%;
-  }
+	margin : 0 5%;
+	border-width : 0;
+	white-space : nowrap;
+	width : 90%;
+}
 
 
 .cdr th {
-    background-color : #ff8000;
-    border-color : #000;
-    border-width : 2px;
-    text-align : left;
-  }
+	background-color : #5ebeff;
+	border-color : #000;
+	border-width : 2px;
+	text-align : left;
+}
 
 
 .cdr .center_col {
-    width : 78%;
-    padding : 2px;
-  }
+	width : 78%;
+	padding : 2px;
+}
 
 
 .cdr .end_col {
-    width : 11%;
-    padding : 2px;
-  }
+	width : 11%;
+	padding : 2px;
+}
 
 
 .cdr .img_col {
-    width : 16px;
-    height : 16px;
-  }
+	width : 16px;
+	height : 16px;
+}
 
 
 .form legend, .title, .title a {
-    color: #777;
-    font-size: 2em;
-    font-weight: bold;
-  }
+	color: #777;
+	font-size: 2em;
+	font-weight: bold;
+}
 
 
 .record {
-    background-color : #fff;
-    empty-cells : hide;
-  }
+	background-color : #fff;
+	empty-cells : hide;
+}
 
 
 .record:hover {
-    background : #ffdca8;
-    color : #000;
-    empty-cells : hide;
-  }
+	background : #ffdca8;
+	color : #000;
+	empty-cells : hide;
+}
 
 
 .record_col {
-    padding-left : 2px;
-    padding-right : 2px;
-    border-width : 0;
-  }
+	padding-left : 2px;
+	padding-right : 2px;
+	border-width : 0;
+}
 
 
 .center {
-    text-align : center;
-  }
+	text-align : center;
+}
 
 .right {
-    padding-right : 80px;
-    text-align : right;
-    font-size: 9pt;
-  }
+	padding-right : 80px;
+	text-align : right;
+	font-size: 9pt;
+}
