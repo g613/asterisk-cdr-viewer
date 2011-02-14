@@ -104,7 +104,7 @@ img {
 	background-color : #5ebeff;
 	border-color : #000;
 	border-width : 2px;
-	text-align : left;
+	text-align : center;
 }
 
 
@@ -116,7 +116,13 @@ img {
 
 .cdr .end_col {
 	width : 11%;
-	padding : 2px;
+	padding : 1px;
+}
+
+.cdr .chart_data {
+	width : 3%;
+	padding : 0px;
+	text-align : right;
 }
 
 
