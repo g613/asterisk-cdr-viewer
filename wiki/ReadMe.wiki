@@ -18,11 +18,8 @@
 To display the links to the recorded files:
 
   * change the following settings in configuration file ( config.inc.php ):
-
     # *$system_monitor_dir = '/var/spool/asterisk/monitor';* - is the directory where call recordings are stored 
-
     # *$system_audio_format = 'wav';* - audio file format
-
   *  Use like this command to start recording ( in asterisk dialplan ):
 {{{
 [macro-monitor]
