@@ -5,7 +5,6 @@ require_once 'include/config.inc.php';
 include 'templates/header.tpl.php';
 include 'templates/form.tpl.php';
 
-$uniqueid = (empty($_POST['uniqueid']) || $_POST['uniqueid'] == 'all') ? NULL : "AND uniqueid LIKE '$_POST[uniqueid]%'";
 $startmonth = empty($_POST['startmonth']) ? date('m') : $_POST['startmonth'];
 $startyear = empty($_POST['startyear']) ? date('Y') : $_POST['startyear'];
 
@@ -119,7 +118,7 @@ $sort = empty($_POST['sort']) ? 'DESC' : $_POST['sort'];
 $group = empty($_POST['group']) ? 'day' : $_POST['group'];
 
 // Build the "WHERE" part of the query
-$where = "WHERE $date_range $uniqueid $channel $dstchannel $src $clid $dst $userfield $accountcode $disposition $duration";
+$where = "WHERE $date_range $channel $dstchannel $src $clid $dst $userfield $accountcode $disposition $duration";
 
 // Connecting, selecting database
 
@@ -136,7 +135,7 @@ if ( isset($_POST['need_csv']) && $_POST['need_csv'] == 'true' ) {
 }
 
 if ( isset($_POST['need_html']) && $_POST['need_html'] == 'true' ) {
-	$query = "SELECT calldate, clid, src, dst, dcontext, channel, dstchannel, lastapp, lastdata, duration, billsec, disposition, amaflags, accountcode, uniqueid, userfield FROM $db_name.$db_table_name $where $order $sort LIMIT $result_limit";
+	$query = "SELECT calldate, clid, src, dst, dcontext, channel, dstchannel, lastapp, lastdata, duration, billsec, disposition, amaflags, accountcode, uniqueid, userfield, unix_timestamp(calldate) as call_timestamp FROM $db_name.$db_table_name $where $order $sort LIMIT $result_limit";
 	$result = mysql_query($query) or die("Query failed: [$query] " . (mysql_error()));
 }
 
@@ -175,6 +174,7 @@ if ( $tot_calls_raw ) {
 		}
 		echo "  <tr class=\"record\">\n";
 		formatCallDate($row['calldate']);
+		formatFiles($row);
 		formatUniqueID($row['uniqueid']);
 		formatChannel($row['channel']);
 		formatSrc($row['src'], $row['clid']);
@@ -304,7 +304,7 @@ if ( isset($_POST['need_chart']) && $_POST['need_chart'] == 'true' ) {
 			$percent_tot_duration = intval($row[2]/$tot_duration_secs*100);
 			$html_duration = sprintf('%02d', intval($row[2]/60)).':'.sprintf('%02d', intval($row[2]%60));
 			echo "  <tr>\n";
-			echo "    <td class=\"end_col\">$row[0]</td><td class=\"center_col\"><div class=\"bar_calls\" style=\"width : $bar_calls%\">$row[1] - $percent_tot_calls%</div><div class=\"bar_duration\" style=\"width : $bar_duration%\">$html_duration - $percent_tot_duration%</div></td><td class=\"end_col\">$avg_call_time</td>\n";
+			echo "    <td class=\"end_col\">$row[0]</td><td class=\"center_col\"><div class=\"bar_calls\" style=\"width : $bar_calls%\">$row[1] - $percent_tot_calls%</div><div class=\"bar_duration\" style=\"width : $bar_duration%\">$html_duration - $percent_tot_duration%</div></td><td class=\"chart_data\">$avg_call_time</td>\n";
 			echo "    <td></td>\n";
 			echo "    <td></td>\n";
 			echo "  </tr>\n";
@@ -315,7 +315,7 @@ if ( isset($_POST['need_chart']) && $_POST['need_chart'] == 'true' ) {
 }
 if ( isset($_POST['need_chart_cc']) && $_POST['need_chart_cc'] == 'true' ) {
 	$date_range = "( (calldate BETWEEN $startdate AND $enddate) or (calldate + interval duration second  BETWEEN $startdate AND $enddate) or ( calldate + interval duration second >= $enddate AND calldate <= $startdate ) )";
-	$where = "WHERE $date_range $uniqueid $channel $dstchannel $src $clid $dst $userfield $accountcode $disposition $duration";
+	$where = "WHERE $date_range $channel $dstchannel $src $clid $dst $userfield $accountcode $disposition $duration";
 	
 	$tot_calls = 0;
 	$max_calls = 0;
@@ -333,7 +333,7 @@ if ( isset($_POST['need_chart_cc']) && $_POST['need_chart_cc'] == 'true' ) {
 				$group_by_str = $row[0];
 				$result_array = array();
 			}
-			for ( $i=$row[2]; $i<=$row[2]+$row[3]; $i++ ) {
+			for ( $i=$row[2]; $i<=$row[2]+$row[3]; ++$i ) {
 				if ( isset($result_array[ "$i" ]) ) {
 					$result_array[ "$i" ] += $row[1];
 				} else {
@@ -358,7 +358,7 @@ if ( isset($_POST['need_chart_cc']) && $_POST['need_chart_cc'] == 'true' ) {
 			$group_by_str_cur = substr(strftime($group_by_field_php[0],$row[0]),0,$group_by_field_php[1]) . $group_by_field_php[2];
 			if ( $group_by_str_cur != $group_by_str ) {
 				if ( $group_by_str ) {
-					for ( $i=$start_timestamp; $i<$row[0]; $i++ ) {
+					for ( $i=$start_timestamp; $i<$row[0]; ++$i ) {
 						if ( ! isset($result_array_cc[ "$group_by_str" ]) || ( isset($result_array["$i"]) && $result_array_cc[ "$group_by_str" ][1] < $result_array["$i"] ) ) {
 							$result_array_cc[ "$group_by_str" ][0] = $i;
 							$result_array_cc[ "$group_by_str" ][1] = isset($result_array["$i"]) ? $result_array["$i"] : 0;
@@ -369,7 +369,7 @@ if ( isset($_POST['need_chart_cc']) && $_POST['need_chart_cc'] == 'true' ) {
 				}
 				$group_by_str = $group_by_str_cur;
 			}
-			for ( $i=$row[0]; $i<=$row[0]+$row[1]; $i++ ) {
+			for ( $i=$row[0]; $i<=$row[0]+$row[1]; ++$i ) {
 				if ( isset($result_array["$i"]) ) {
 					++$result_array["$i"];
 				} else {
@@ -381,7 +381,7 @@ if ( isset($_POST['need_chart_cc']) && $_POST['need_chart_cc'] == 'true' ) {
 			}
 			$tot_calls++;
 		}
-		for ( $i=$start_timestamp; $i<=$end_timestamp; $i++ ) {
+		for ( $i=$start_timestamp; $i<=$end_timestamp; ++$i ) {
 			$group_by_str = substr(strftime($group_by_field_php[0],$i),0,$group_by_field_php[1]) . $group_by_field_php[2];
 			if ( ! isset($result_array_cc[ "$group_by_str" ]) || ( isset($result_array["$i"]) && $result_array_cc[ "$group_by_str" ][1] < $result_array["$i"] ) ) {
 				$result_array_cc[ "$group_by_str" ][0] = $i;
