@@ -23,7 +23,7 @@ To display the links to the recorded files:
 
     * *$system_audio_format = 'wav';* - # audio file format
 
-  *  Use like this command to recording calls ( in asterisk dialplan ):
+  *  Use like this command to start recording ( in asterisk dialplan ):
 {{{
 [macro-monitor]
 exten => s,1,Set(MONITOR_FILE=/var/spool/asterisk/monitor/${UNIQUEID})
