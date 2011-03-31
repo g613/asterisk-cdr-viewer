@@ -5,6 +5,11 @@ require_once 'include/config.inc.php';
 include 'templates/header.tpl.php';
 include 'templates/form.tpl.php';
 
+foreach ( array_keys($_POST) as $key ) {
+	$_POST[$key] = preg_replace('/;/', ' ', $_POST[$key]);
+	$_POST[$key] = mysql_real_escape_string($_POST[$key]);
+}
+
 $startmonth = empty($_POST['startmonth']) ? date('m') : $_POST['startmonth'];
 $startyear = empty($_POST['startyear']) ? date('Y') : $_POST['startyear'];
 
@@ -41,12 +46,13 @@ $end_timestamp = mktime( $endhour, $endmin, 59, $endmonth, $endday, $endyear );
 if ( empty($_POST['src']) ) {
 	$src_number = NULL;
 } else {
-	$src_number = asteriskregexp2sqllike( 'src' );
+	$src_number = asteriskregexp2sqllike( 'src', '' );
 }
+
 if ( empty($_POST['dst']) ) {
 	$dst_number = NULL;
 } else {
-	$dst_number = asteriskregexp2sqllike( 'dst' );
+	$dst_number = asteriskregexp2sqllike( 'dst', '' );
 }
 
 $date_range = "calldate BETWEEN $startdate AND $enddate";
@@ -73,6 +79,15 @@ $mod_vars['accountcode'][] = empty($_POST['accountcode_mod']) ? NULL : $_POST['a
 $mod_vars['accountcode'][] = empty($_POST['accountcode_neg']) ? NULL : $_POST['accountcode_neg'];
 $result_limit = empty($_POST['limit']) ? $db_result_limit : $_POST['limit'];
 
+if ( strlen($cdr_user_name) > 0 ) {
+	$cdr_user_name = asteriskregexp2sqllike( 'cdr_user_name', $cdr_user_name );
+	if ( isset($mod_vars['cdr_user_name']) and $mod_vars['cdr_user_name'][2] == 'asterisk-regexp' ) {
+		$cdr_user_name = " AND ( dst RLIKE '$cdr_user_name' or src RLIKE '$cdr_user_name' )";
+	} else {
+		$cdr_user_name = " AND ( dst = '$cdr_user_name' or src = '$cdr_user_name' )";
+	}
+}
+
 foreach ($mod_vars as $key => $val) {
 	if (empty($val[0])) {
 		unset($_POST[$key.'_mod']);
@@ -87,7 +102,7 @@ foreach ($mod_vars as $key => $val) {
 				$$key = "AND $key $pre_like LIKE '%$val[0]%'";
 			break;
 			case "ends_with":
-				$$key = "AND $key $pre_like LIKE '%$$val[0]'";
+				$$key = "AND $key $pre_like LIKE '%$val[0]'";
 			break;
 			case "exact":
 				if ( $val[2] == 'true' ) {
@@ -118,7 +133,7 @@ $sort = empty($_POST['sort']) ? 'DESC' : $_POST['sort'];
 $group = empty($_POST['group']) ? 'day' : $_POST['group'];
 
 // Build the "WHERE" part of the query
-$where = "WHERE $date_range $channel $dstchannel $src $clid $dst $userfield $accountcode $disposition $duration";
+$where = "WHERE $date_range $channel $dstchannel $src $clid $dst $userfield $accountcode $disposition $duration $cdr_user_name";
 
 // Connecting, selecting database
 
@@ -315,7 +330,7 @@ if ( isset($_POST['need_chart']) && $_POST['need_chart'] == 'true' ) {
 }
 if ( isset($_POST['need_chart_cc']) && $_POST['need_chart_cc'] == 'true' ) {
 	$date_range = "( (calldate BETWEEN $startdate AND $enddate) or (calldate + interval duration second  BETWEEN $startdate AND $enddate) or ( calldate + interval duration second >= $enddate AND calldate <= $startdate ) )";
-	$where = "WHERE $date_range $channel $dstchannel $src $clid $dst $userfield $accountcode $disposition $duration";
+	$where = "WHERE $date_range $channel $dstchannel $src $clid $dst $userfield $accountcode $disposition $duration $cdr_user_name";
 	
 	$tot_calls = 0;
 	$max_calls = 0;

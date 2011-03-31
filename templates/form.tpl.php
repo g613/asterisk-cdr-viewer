@@ -3,7 +3,7 @@
 <tr>
 <td>
 
-<form action="index.php" method="post" enctype="application/x-www-form-urlencoded">
+<form method="post" enctype="application/x-www-form-urlencoded">
 <fieldset>
 <legend class="title">Call Detail Record Search</legend>
 <table width="100%">
