@@ -11,7 +11,7 @@
 
   * change settings in /var/www/asterisk-cdr-viewer/include/config.inc.php
 
-  * open browser with url  http://your_ip/acdr/index.php
+  * open browser with url  http://your_ip/acdr
 
 ===Recording interface===
 
