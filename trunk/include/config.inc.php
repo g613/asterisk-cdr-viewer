@@ -28,6 +28,13 @@ $system_audio_format = 'wav';
 /* Reverse lookup URL where "%n" is replace with the destination number */
 $rev_lookup_url = 'http://www.whitepages.com/search/ReversePhone?full_phone=%n';
 
+/* User name */
+$cdr_user_name = getenv('PATH_INFO');
+if ( strlen($cdr_user_name) > 0 ) {
+	$cdr_user_name = mysql_real_escape_string(substr(getenv('PATH_INFO'),1));
+	echo $cdr_user_name;
+}
+
 /* Recorded file */
 function formatFiles($row) {
 	global $system_monitor_dir, $system_fax_archive_dir, $system_audio_format;
@@ -38,7 +45,7 @@ function formatFiles($row) {
 
 	if (file_exists("$system_monitor_dir/$recorded_file.$system_audio_format")) {
 		echo "    <td class=\"record_col\"><a href=\"download.php?audio=$recorded_file.$system_audio_format\" title=\"Listen to call recording\"><img src=\"/icons/small/sound.png\" alt=\"Call recording\" /></a></td>\n";
-	} elseif (file_exists("$system_fax_archive_dir/$uniqueid.tif")) {
+	} elseif (file_exists("$system_fax_archive_dir/$recorded_file.tif")) {
 		echo "    <td class=\"record_col\"><a href=\"download.php?fax=$recorded_file.tif\" title=\"View FAX image\"><img src=\"/icons/small/text.png\" alt=\"FAX image\" /></a></td>\n";
 	} else {
 		echo "    <td class=\"record_col\"></td>\n";
@@ -116,9 +123,11 @@ function formatAccountCode($accountcode) {
 }
 
 /* Asterisk RegExp parser */
-function asteriskregexp2sqllike( $source_data ) {
-	$number = $_POST[$source_data];
-
+function asteriskregexp2sqllike( $source_data, $user_num ) {
+	$number = $user_num;
+	if ( strlen($number) < 1 ) {
+		$number = $_POST[$source_data];
+	}
 	if ( '__' == substr($number,0,2) ) {
 		$number = substr($number,1);
 	} elseif ( '_' == substr($number,0,1) ) {
