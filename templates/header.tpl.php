@@ -11,6 +11,13 @@
     <td id="header_title">Asterisk CDR Viewer</td>
   </tr>
   <tr>
-    <td id="header_subtitle"><!--Call Detail Records--></td>
+    <td id="header_subtitle">&nbsp;</td>
+	<td align='right'>
+	<?php
+		if ( strlen(getenv('REMOTE_USER')) ) {
+			echo "<a href='/acdr/logout'>logout: ". getenv('REMOTE_USER') ."</a>&nbsp;&nbsp;";
+		}
+	?>
+	</td>
   </tr>
 </table>

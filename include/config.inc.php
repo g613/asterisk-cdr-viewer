@@ -7,6 +7,9 @@ $db_pass = 'astcdr123';
 $db_name = 'cdrasterisk';
 $db_table_name = 'cdr';
 
+/* Admin users. for multiple user access */
+$admin_user_names = 'iokunev,admin2,admin3';
+
 /* $db_result_limit is the 'LIMIT' appended to the query */
 $db_result_limit = '100';
 
@@ -29,15 +32,19 @@ $system_audio_format = 'wav';
 $rev_lookup_url = 'http://www.whitepages.com/search/ReversePhone?full_phone=%n';
 
 /* User name */
-$cdr_user_name = getenv('PATH_INFO');
-if ( strlen($cdr_user_name) > 1 ) {
-	if ( getenv('REMOTE_USER') == substr(getenv('PATH_INFO'),1) ) {
-		$cdr_user_name = mysql_real_escape_string(substr(getenv('PATH_INFO'),1));
-	} else {
+$cdr_user_name = getenv('REMOTE_USER');
+
+if ( strlen($cdr_user_name) > 0 ) {
+	$is_admin = strpos(",$admin_user_names,", ",$cdr_user_name,");
+	
+	if ( getenv('PATH_INFO') == '/logout' ) {
 		header('Status: 401 Unauthorized');
 		header('WWW-Authenticate: Basic realm="Asterisk-CDR-Stat"');
-		echo "Unauthorized: $cdr_user_name";
 		exit;
+	} elseif ( $is_admin !== false ) {
+		$cdr_user_name = '';
+	} else {
+		$cdr_user_name = mysql_real_escape_string($cdr_user_name);
 	}
 }
 
