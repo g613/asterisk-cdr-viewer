@@ -26,3 +26,24 @@ To display the links to the recorded files:
 exten => s,1,Set(MONITOR_FILE=/var/spool/asterisk/monitor/${UNIQUEID})
 exten => s,n,MixMonitor(${MONITOR_FILE}.wav,b)
 }}}
+
+===Multiple user access===
+
+  * uncomment following section in http.conf file:
+{{{
+<Directory "/var/www/asterisk-cdr-viewer">
+        AuthName "Asterisk-CDR-Stat"
+        AuthType Basic
+        AuthUserFile /var/www/asterisk-cdr-viewer/.htpasswd
+        AuthGroupFile /dev/null
+        require valid-user
+</Directory>
+}}}
+
+  * add admin user, for example (iokunev) :
+    * htpasswd -c /var/www/asterisk-cdr-viewer/.htpasswd iokunev
+    * access for all CDRs: http://your_ip/acdr
+
+  * add user 2280:
+    * htpasswd  /var/www/asterisk-cdr-viewer/.htpasswd 2280 test
+    * access for incomming/outgoing (cid or did=2280) calls for this user: http://your_ip/acdr/2280
