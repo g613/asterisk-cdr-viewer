@@ -34,9 +34,9 @@ if ( strlen($cdr_user_name) > 1 ) {
 	if ( getenv('REMOTE_USER') == substr(getenv('PATH_INFO'),1) ) {
 		$cdr_user_name = mysql_real_escape_string(substr(getenv('PATH_INFO'),1));
 	} else {
-  		header("Status: 403");
-		header("Content-type: text/plain");
-		echo "Forbidden";
+		header('Status: 401 Unauthorized');
+		header('WWW-Authenticate: Basic realm="Asterisk-CDR-Stat"');
+		echo "Unauthorized: $cdr_user_name";
 		exit;
 	}
 }
