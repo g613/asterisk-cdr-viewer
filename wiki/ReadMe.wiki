@@ -31,13 +31,22 @@ exten => s,n,MixMonitor(${MONITOR_FILE}.wav,b)
 
   * uncomment following section in http.conf file:
 {{{
-<Directory "/var/www/asterisk-cdr-viewer">
-        AuthName "Asterisk-CDR-Stat"
-        AuthType Basic
-        AuthUserFile /var/www/asterisk-cdr-viewer/.htpasswd
-        AuthGroupFile /dev/null
-        require valid-user
-</Directory>
+    #<Location "/acdrui">
+    #   AuthName "Asterisk-CDR-Stat"
+    #   AuthType Basic
+    #   AuthUserFile /var/www/asterisk-cdr-viewer/.htpasswd
+    #   AuthGroupFile /dev/null
+    #   require valid-user
+    #</Location>
+    #
+    #<Location "/acdr">
+    #   AuthName "Asterisk-CDR-Stat"
+    #   AuthType Basic
+    #   AuthUserFile /var/www/asterisk-cdr-viewer/.htpasswd
+    #   AuthGroupFile /dev/null
+    #   require user iokunev
+    #</Location>
+
 }}}
 
   * add admin user, for example (iokunev) :
@@ -46,4 +55,4 @@ exten => s,n,MixMonitor(${MONITOR_FILE}.wav,b)
 
   * add user 2280:
     * htpasswd  /var/www/asterisk-cdr-viewer/.htpasswd 2280 test
-    * access for incomming/outgoing (cid or did=2280) calls for this user: http://your_ip/acdr/2280
+    * access for incomming/outgoing (cid or did=2280) calls for this user: http://your_ip/acdrui/2280
