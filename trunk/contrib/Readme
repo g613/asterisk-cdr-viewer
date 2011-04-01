@@ -10,5 +10,41 @@ Install:
 
 	change settings in /var/www/asterisk-cdr-viewer/include/config.inc.php
 
-	open browser with url  http://your_ip/acdr/index.php
+	open browser with url  http://your_ip/acdr
+
+Recording interface
+
+	To display the links to the recorded files:
+
+	* change the following settings in configuration file ( config.inc.php ):
+		1. $system_monitor_dir = '/var/spool/asterisk/monitor'; - is the directory where call recordings are stored
+		2. $system_audio_format = 'wav'; - audio file format 
+	* Use like this command to start recording ( in asterisk dialplan ):
+
+		[macro-monitor]
+		exten => s,1,Set(MONITOR_FILE=/var/spool/asterisk/monitor/${UNIQUEID})
+		exten => s,n,MixMonitor(${MONITOR_FILE}.wav,b)
+
+
+Multiple user access
+
+	uncomment following section in http.conf file:
+
+	<Directory "/var/www/asterisk-cdr-viewer">
+		AuthName "Asterisk-CDR-Stat"
+		AuthType Basic
+		AuthUserFile /var/www/asterisk-cdr-viewer/.htpasswd
+		AuthGroupFile /dev/null
+		require valid-user
+	</Directory>
+
+	add admin user, for example (iokunev) :
+	htpasswd -c /var/www/asterisk-cdr-viewer/.htpasswd iokunev
+	
+	access for all CDRs: http://your_ip/acdr
+
+	add user 2280:
+	htpasswd  /var/www/asterisk-cdr-viewer/.htpasswd 2280 test
+
+	access for incomming/outgoing (cid or did=2280) calls for this user: http://your_ip/acdr/2280
 

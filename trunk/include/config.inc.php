@@ -30,9 +30,15 @@ $rev_lookup_url = 'http://www.whitepages.com/search/ReversePhone?full_phone=%n';
 
 /* User name */
 $cdr_user_name = getenv('PATH_INFO');
-if ( strlen($cdr_user_name) > 0 ) {
-	$cdr_user_name = mysql_real_escape_string(substr(getenv('PATH_INFO'),1));
-	echo $cdr_user_name;
+if ( strlen($cdr_user_name) > 1 ) {
+	if ( getenv('REMOTE_USER') == substr(getenv('PATH_INFO'),1) ) {
+		$cdr_user_name = mysql_real_escape_string(substr(getenv('PATH_INFO'),1));
+	} else {
+  		header("Status: 403");
+		header("Content-type: text/plain");
+		echo "Forbidden";
+		exit;
+	}
 }
 
 /* Recorded file */
