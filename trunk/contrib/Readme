@@ -30,30 +30,24 @@ Multiple user access
 
 	uncomment following section in http.conf file:
 
-	#<Location "/acdrui">
-	#	AuthName "Asterisk-CDR-Stat"
-	#	AuthType Basic
-	#	AuthUserFile /var/www/asterisk-cdr-viewer/.htpasswd
-	#	AuthGroupFile /dev/null
-	#	require valid-user
-	#</Location>
-	#
-	#<Location "/acdr">
-	#	AuthName "Asterisk-CDR-Stat"
-	#	AuthType Basic
-	#	AuthUserFile /var/www/asterisk-cdr-viewer/.htpasswd
-	#	AuthGroupFile /dev/null
-	#	require user iokunev
-	#</Location>
+	<Location "/acdr">
+		AuthName "Asterisk-CDR-Stat"
+		AuthType Basic
+		AuthUserFile /var/www/asterisk-cdr-viewer/.htpasswd
+		AuthGroupFile /dev/null
+		require valid-user
+	</Location>
 
 
-	add admin user, for example (iokunev) :
-	htpasswd -c /var/www/asterisk-cdr-viewer/.htpasswd iokunev
+	* add admin user, for example (iokunev) :
+	  htpasswd -c /var/www/asterisk-cdr-viewer/.htpasswd iokunev
 	
-	access for all CDRs: http://your_ip/acdr
+	* added admin name to include/config.inc.php: $admin_user_names = "admin1,admin2,iokunev"
 
-	add user 2280:
-	htpasswd  /var/www/asterisk-cdr-viewer/.htpasswd 2280 test
+	access for all CDRs: http://your_ip/acdr - with login iokunev
 
-	access for incomming/outgoing (cid or did=2280) calls for this user: http://your_ip/acdrui/2280
+	* add user 2280:
+	 htpasswd  /var/www/asterisk-cdr-viewer/.htpasswd 2280 test
+
+	access for incomming/outgoing (cid or did=2280) calls for this user: http://your_ip/acdr - with login 2280
 
