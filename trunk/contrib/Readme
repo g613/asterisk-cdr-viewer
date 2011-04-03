@@ -44,6 +44,8 @@ Multiple user access
 	
 	* added admin name to include/config.inc.php: $admin_user_names = "admin1,admin2,iokunev"
 
+		!!! $admin_user_names = '*' - all registered users are administrators. !!!
+
 	access for all CDRs: http://your_ip/acdr - with login iokunev
 
 	* add user 2280:

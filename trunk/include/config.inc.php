@@ -8,7 +8,8 @@ $db_name = 'cdrasterisk';
 $db_table_name = 'cdr';
 
 /* Admin users. for multiple user access */
-$admin_user_names = 'iokunev,admin2,admin3';
+/* $admin_user_names = 'iokunev,admin2,admin3'; */
+$admin_user_names = '*';
 
 /* $db_result_limit is the 'LIMIT' appended to the query */
 $db_result_limit = '100';
@@ -34,7 +35,7 @@ $rev_lookup_url = 'http://www.whitepages.com/search/ReversePhone?full_phone=%n';
 /* User name */
 $cdr_user_name = getenv('REMOTE_USER');
 
-if ( strlen($cdr_user_name) > 0 ) {
+if ( strlen($cdr_user_name) > 0 and $admin_user_names != '*' ) {
 	$is_admin = strpos(",$admin_user_names,", ",$cdr_user_name,");
 	
 	if ( getenv('PATH_INFO') == '/logout' ) {
