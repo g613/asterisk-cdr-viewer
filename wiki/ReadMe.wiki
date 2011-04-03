@@ -44,6 +44,7 @@ exten => s,n,MixMonitor(${MONITOR_FILE}.wav,b)
       htpasswd -c /var/www/asterisk-cdr-viewer/.htpasswd iokunev
 
       added admin name to include/config.inc.php: $admin_user_names = "admin1,admin2,iokunev"
+    <font color='red'>!!! $admin_user_names = '*' - all registered users are administrators. !!!</font>
 
     access for all CDRs: http://your_ip/acdr - with login iokunev
 
