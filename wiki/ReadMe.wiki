@@ -11,7 +11,7 @@
 
   * change settings in /var/www/asterisk-cdr-viewer/include/config.inc.php
 
-  * open browser with url  http://your_ip/acdr
+  * open browser with url  http://your_ip/acdr/
 
 ===Recording interface===
 
@@ -31,7 +31,7 @@ exten => s,n,MixMonitor(${MONITOR_FILE}.wav,b)
 
   * uncomment following section in http.conf file:
 {{{
-    #<Location "/acdrui">
+    #<Location "/acdr/">
     #   AuthName "Asterisk-CDR-Stat"
     #   AuthType Basic
     #   AuthUserFile /var/www/asterisk-cdr-viewer/.htpasswd
@@ -46,9 +46,9 @@ exten => s,n,MixMonitor(${MONITOR_FILE}.wav,b)
       added admin name to include/config.inc.php: $admin_user_names = "admin1,admin2,iokunev"
     <font color='red'>!!! $admin_user_names = '`*`' - all registered users are administrators. !!!</font>
 
-    access for all CDRs: http://your_ip/acdr - with login iokunev
+    access for all CDRs: http://your_ip/acdr/ - with login iokunev
 
   * add user 2280:
      htpasswd  /var/www/asterisk-cdr-viewer/.htpasswd 2280 test
 
-    access for incomming/outgoing (cid or did=2280) calls for this user: http://your_ip/acdr - with login 2280
+    access for incomming/outgoing (cid or did=2280) calls for this user: http://your_ip/acdr/ - with login 2280
