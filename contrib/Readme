@@ -10,7 +10,7 @@ Install:
 
 	change settings in /var/www/asterisk-cdr-viewer/include/config.inc.php
 
-	open browser with url  http://your_ip/acdr
+	open browser with url  http://your_ip/acdr/
 
 Recording interface
 
@@ -30,7 +30,7 @@ Multiple user access
 
 	uncomment following section in http.conf file:
 
-	<Location "/acdr">
+	<Location "/acdr/">
 		AuthName "Asterisk-CDR-Stat"
 		AuthType Basic
 		AuthUserFile /var/www/asterisk-cdr-viewer/.htpasswd
@@ -46,10 +46,10 @@ Multiple user access
 
 		!!! $admin_user_names = '*' - all registered users are administrators. !!!
 
-	access for all CDRs: http://your_ip/acdr - with login iokunev
+	access for all CDRs: http://your_ip/acdr/ - with login iokunev
 
 	* add user 2280:
 	 htpasswd  /var/www/asterisk-cdr-viewer/.htpasswd 2280 test
 
-	access for incomming/outgoing (cid or did=2280) calls for this user: http://your_ip/acdr - with login 2280
+	access for incomming/outgoing (cid or did=2280) calls for this user: http://your_ip/acdr/ - with login 2280
 

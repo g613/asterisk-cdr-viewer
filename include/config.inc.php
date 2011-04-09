@@ -35,10 +35,11 @@ $rev_lookup_url = 'http://www.whitepages.com/search/ReversePhone?full_phone=%n';
 /* User name */
 $cdr_user_name = getenv('REMOTE_USER');
 
-if ( strlen($cdr_user_name) > 0 and $admin_user_names != '*' ) {
+if ( strlen($cdr_user_name) > 0 ) {
 	$is_admin = strpos(",$admin_user_names,", ",$cdr_user_name,");
-	
-	if ( getenv('PATH_INFO') == '/logout' ) {
+	if ( $admin_user_names == '*' ) {
+		$cdr_user_name = '';
+	} elseif ( isset($_GET['action']) && $_GET['action'] == 'logout' ) {
 		header('Status: 401 Unauthorized');
 		header('WWW-Authenticate: Basic realm="Asterisk-CDR-Stat"');
 		exit;
