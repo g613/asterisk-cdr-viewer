@@ -56,18 +56,18 @@ if ( empty($_POST['dst']) ) {
 }
 
 $date_range = "calldate BETWEEN $startdate AND $enddate";
-$mod_vars['channel'][] = empty($_POST['src_channel']) ? NULL : $_POST['src_channel'];
-$mod_vars['channel'][] = empty($_POST['src_channel_mod']) ? NULL : $_POST['src_channel_mod'];
-$mod_vars['channel'][] = empty($_POST['src_channel_neg']) ? NULL : $_POST['src_channel_neg'];
+$mod_vars['channel'][] = empty($_POST['channel']) ? NULL : $_POST['channel'];
+$mod_vars['channel'][] = empty($_POST['channel_mod']) ? NULL : $_POST['channel_mod'];
+$mod_vars['channel'][] = empty($_POST['channel_neg']) ? NULL : $_POST['channel_neg'];
 $mod_vars['src'][] = $src_number;
 $mod_vars['src'][] = empty($_POST['src_mod']) ? NULL : $_POST['src_mod'];
 $mod_vars['src'][] = empty($_POST['src_neg']) ? NULL : $_POST['src_neg'];
 $mod_vars['clid'][] = empty($_POST['clid']) ? NULL : $_POST['clid'];
 $mod_vars['clid'][] = empty($_POST['clid_mod']) ? NULL : $_POST['clid_mod'];
 $mod_vars['clid'][] = empty($_POST['clid_neg']) ? NULL : $_POST['clid_neg'];
-$mod_vars['dstchannel'][] = empty($_POST['dst_channel']) ? NULL : $_POST['dst_channel'];
-$mod_vars['dstchannel'][] = empty($_POST['dst_channel_mod']) ? NULL : $_POST['dst_channel_mod'];
-$mod_vars['dstchannel'][] = empty($_POST['dst_channel_neg']) ? NULL : $_POST['dst_channel_neg'];
+$mod_vars['dstchannel'][] = empty($_POST['dstchannel']) ? NULL : $_POST['dstchannel'];
+$mod_vars['dstchannel'][] = empty($_POST['dstchannel_mod']) ? NULL : $_POST['dstchannel_mod'];
+$mod_vars['dstchannel'][] = empty($_POST['dstchannel_neg']) ? NULL : $_POST['dstchannel_neg'];
 $mod_vars['dst'][] = $dst_number;
 $mod_vars['dst'][] = empty($_POST['dst_mod']) ? NULL : $_POST['dst_mod'];
 $mod_vars['dst'][] = empty($_POST['dst_neg']) ? NULL : $_POST['dst_neg'];
@@ -137,7 +137,7 @@ $where = "WHERE $date_range $channel $dstchannel $src $clid $dst $userfield $acc
 
 // Connecting, selecting database
 
-$dbconn = mysql_connect( $db_host, $db_user, $db_pass ) or die('Could not connect: ' . mysql_error());
+$dbconn = mysql_connect( "$db_host:$db_port", $db_user, $db_pass ) or die('Could not connect: ' . mysql_error());
 mysql_select_db($db_name,$dbconn);
 		
 if ( isset($_POST['need_csv']) && $_POST['need_csv'] == 'true' ) {

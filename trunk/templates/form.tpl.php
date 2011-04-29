@@ -99,13 +99,13 @@ if (isset($_POST['limit']) ) {
 </td>
 </tr>
 <tr>
-<td><input <?php if (isset($_POST['order']) && $_POST['order'] == 'src_channel') { echo 'checked="checked"'; } ?> type="radio" name="order" value="src_channel" />&nbsp;<label for="src_channel">Src channel:</label></td>
-<td><input type="text" name="src_channel" id="src_channel" value="<?php if (isset($_POST['src_channel'])) { echo $_POST['src_channel']; } ?>" />
-Not:<input <?php if ( isset($_POST['src_channel_neg'] ) && $_POST['src_channel_neg'] == 'true' ) { echo 'checked="checked"'; } ?> type="checkbox" name="src_channel_neg" value="true" />
-Begins With:<input <?php if (empty($_POST['src_channel_mod']) || $_POST['src_channel_mod'] == 'begins_with') { echo 'checked="checked"'; } ?> type="radio" name="src_channel_mod" value="begins_with" />
-Contains:<input <?php if (isset($_POST['src_channel_mod']) && $_POST['src_channel_mod'] == 'contains') { echo 'checked="checked"'; } ?> type="radio" name="src_channel_mod" value="contains" />
-Ends With:<input <?php if (isset($_POST['src_channel_mod']) && $_POST['src_channel_mod'] == 'ends_with') { echo 'checked="checked"'; } ?> type="radio" name="src_channel_mod" value="ends_with" />
-Exactly:<input <?php if (isset($_POST['src_channel_mod']) && $_POST['src_channel_mod'] == 'exact') { echo 'checked="checked"'; } ?> type="radio" name="src_channel_mod" value="exact" />
+<td><input <?php if (isset($_POST['order']) && $_POST['order'] == 'channel') { echo 'checked="checked"'; } ?> type="radio" name="order" value="channel" />&nbsp;<label for="channel">Src channel:</label></td>
+<td><input type="text" name="channel" id="channel" value="<?php if (isset($_POST['channel'])) { echo $_POST['channel']; } ?>" />
+Not:<input <?php if ( isset($_POST['channel_neg'] ) && $_POST['channel_neg'] == 'true' ) { echo 'checked="checked"'; } ?> type="checkbox" name="channel_neg" value="true" />
+Begins With:<input <?php if (empty($_POST['channel_mod']) || $_POST['channel_mod'] == 'begins_with') { echo 'checked="checked"'; } ?> type="radio" name="channel_mod" value="begins_with" />
+Contains:<input <?php if (isset($_POST['channel_mod']) && $_POST['channel_mod'] == 'contains') { echo 'checked="checked"'; } ?> type="radio" name="channel_mod" value="contains" />
+Ends With:<input <?php if (isset($_POST['channel_mod']) && $_POST['channel_mod'] == 'ends_with') { echo 'checked="checked"'; } ?> type="radio" name="channel_mod" value="ends_with" />
+Exactly:<input <?php if (isset($_POST['channel_mod']) && $_POST['channel_mod'] == 'exact') { echo 'checked="checked"'; } ?> type="radio" name="channel_mod" value="exact" />
 </td>
 </tr>
 <tr>
@@ -129,13 +129,13 @@ Exactly:<input <?php if (isset($_POST['clid_mod']) && $_POST['clid_mod'] == 'exa
 </td>
 </tr>
 <tr>
-<td><input <?php if (isset($_POST['order']) && $_POST['order'] == 'dst_channel') { echo 'checked="checked"'; } ?> type="radio" name="order" value="dst_channel" />&nbsp;<label for="dst_channel">Dst channel:</label></td>
-<td><input type="text" name="dst_channel" id="dst_channel" value="<?php if (isset($_POST['dst_channel'])) { echo $_POST['dst_channel']; } ?>" />
-Not:<input <?php if ( isset($_POST['dst_channel_neg'] ) && $_POST['dst_channel_neg'] == 'true' ) { echo 'checked="checked"'; } ?> type="checkbox" name="dst_channel_neg" value="true" />
-Begins With:<input <?php if (empty($_POST['dst_channel_mod']) || $_POST['dst_channel_mod'] == 'begins_with') { echo 'checked="checked"'; } ?> type="radio" name="dst_channel_mod" value="begins_with" />
-Contains:<input <?php if (isset($_POST['dst_channel_mod']) && $_POST['dst_channel_mod'] == 'contains') { echo 'checked="checked"'; } ?> type="radio" name="dst_channel_mod" value="contains" />
-Ends With:<input <?php if (isset($_POST['dst_channel_mod']) && $_POST['dst_channel_mod'] == 'ends_with') { echo 'checked="checked"'; } ?> type="radio" name="dst_channel_mod" value="ends_with" />
-Exactly:<input <?php if (isset($_POST['dst_channel_mod']) && $_POST['dst_channel_mod'] == 'exact') { echo 'checked="checked"'; } ?> type="radio" name="dst_channel_mod" value="exact" />
+<td><input <?php if (isset($_POST['order']) && $_POST['order'] == 'dstchannel') { echo 'checked="checked"'; } ?> type="radio" name="order" value="dstchannel" />&nbsp;<label for="dstchannel">Dst channel:</label></td>
+<td><input type="text" name="dstchannel" id="dstchannel" value="<?php if (isset($_POST['dstchannel'])) { echo $_POST['dstchannel']; } ?>" />
+Not:<input <?php if ( isset($_POST['dstchannel_neg'] ) && $_POST['dstchannel_neg'] == 'true' ) { echo 'checked="checked"'; } ?> type="checkbox" name="dstchannel_neg" value="true" />
+Begins With:<input <?php if (empty($_POST['dstchannel_mod']) || $_POST['dstchannel_mod'] == 'begins_with') { echo 'checked="checked"'; } ?> type="radio" name="dstchannel_mod" value="begins_with" />
+Contains:<input <?php if (isset($_POST['dstchannel_mod']) && $_POST['dstchannel_mod'] == 'contains') { echo 'checked="checked"'; } ?> type="radio" name="dstchannel_mod" value="contains" />
+Ends With:<input <?php if (isset($_POST['dstchannel_mod']) && $_POST['dstchannel_mod'] == 'ends_with') { echo 'checked="checked"'; } ?> type="radio" name="dstchannel_mod" value="ends_with" />
+Exactly:<input <?php if (isset($_POST['dstchannel_mod']) && $_POST['dstchannel_mod'] == 'exact') { echo 'checked="checked"'; } ?> type="radio" name="dstchannel_mod" value="exact" />
 </td>
 </tr>
 <tr>
