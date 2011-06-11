@@ -5,6 +5,10 @@ require_once 'include/config.inc.php';
 include 'templates/header.tpl.php';
 include 'templates/form.tpl.php';
 
+// Connecting, selecting database
+$dbconn = mysql_connect( "$db_host:$db_port", $db_user, $db_pass ) or die('Could not connect: ' . mysql_error());
+mysql_select_db($db_name,$dbconn);
+		
 foreach ( array_keys($_POST) as $key ) {
 	$_POST[$key] = preg_replace('/;/', ' ', $_POST[$key]);
 	$_POST[$key] = mysql_real_escape_string($_POST[$key]);
@@ -80,7 +84,7 @@ $mod_vars['accountcode'][] = empty($_POST['accountcode_neg']) ? NULL : $_POST['a
 $result_limit = empty($_POST['limit']) ? $db_result_limit : $_POST['limit'];
 
 if ( strlen($cdr_user_name) > 0 ) {
-	$cdr_user_name = asteriskregexp2sqllike( 'cdr_user_name', $cdr_user_name );
+	$cdr_user_name = asteriskregexp2sqllike( 'cdr_user_name', mysql_real_escape_string($cdr_user_name) );
 	if ( isset($mod_vars['cdr_user_name']) and $mod_vars['cdr_user_name'][2] == 'asterisk-regexp' ) {
 		$cdr_user_name = " AND ( dst RLIKE '$cdr_user_name' or src RLIKE '$cdr_user_name' )";
 	} else {
@@ -135,11 +139,6 @@ $group = empty($_POST['group']) ? 'day' : $_POST['group'];
 // Build the "WHERE" part of the query
 $where = "WHERE $date_range $channel $dstchannel $src $clid $dst $userfield $accountcode $disposition $duration $cdr_user_name";
 
-// Connecting, selecting database
-
-$dbconn = mysql_connect( "$db_host:$db_port", $db_user, $db_pass ) or die('Could not connect: ' . mysql_error());
-mysql_select_db($db_name,$dbconn);
-		
 if ( isset($_POST['need_csv']) && $_POST['need_csv'] == 'true' ) {
 	$csv_file = md5(time() .'-'. $where ).'.csv';
 	if (! file_exists("$system_tmp_dir/$csv_file")) {

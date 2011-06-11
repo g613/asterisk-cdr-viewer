@@ -45,8 +45,6 @@ if ( strlen($cdr_user_name) > 0 ) {
 		exit;
 	} elseif ( $is_admin !== false ) {
 		$cdr_user_name = '';
-	} else {
-		$cdr_user_name = mysql_real_escape_string($cdr_user_name);
 	}
 }
 
