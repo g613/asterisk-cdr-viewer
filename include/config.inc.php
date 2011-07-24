@@ -62,6 +62,8 @@ function formatFiles($row) {
 
 	/* 
 		ends at the uniqueid.wav, for example: date-time-uniqueid.wav 
+	
+		thanks to Beto Reyes
 	*/
 	/*
 	$recorded_file = glob($system_monitor_dir . '/*' . $row['uniqueid'] . '.' . $system_audio_format);
