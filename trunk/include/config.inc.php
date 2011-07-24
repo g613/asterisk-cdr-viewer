@@ -52,9 +52,32 @@ if ( strlen($cdr_user_name) > 0 ) {
 function formatFiles($row) {
 	global $system_monitor_dir, $system_fax_archive_dir, $system_audio_format;
 
-	/* File name */
-	/* $recorded_file = $row['src'] .'-'. $row['dst'] .'-'. $row['call_timestamp']*/
+	/* File name formats, please specify: */
+	
+	/* 
+		caller-called-timestamp.wav 
+	*/
+	/* $recorded_file = $row['src'] .'-'. $row['dst'] .'-'. $row['call_timestamp'] */
+	/* ============================================================================ */	
+
+	/* 
+		ends at the uniqueid.wav, for example: date-time-uniqueid.wav 
+	*/
+	/*
+	$recorded_file = glob($system_monitor_dir . '/*' . $row['uniqueid'] . '.' . $system_audio_format);
+	if (count($recorded_file)>0) {
+		$recorded_file = basename($recorded_file[0],".$system_audio_format");
+	} else {
+		$recorded_file = $row['uniqueid'];
+	}
+	*/
+	/* ============================================================================ */	
+
+	/* 
+		uniqueid.wav 
+	*/
 	$recorded_file = $row['uniqueid'];
+	/* ============================================================================ */	
 
 	if (file_exists("$system_monitor_dir/$recorded_file.$system_audio_format")) {
 		echo "    <td class=\"record_col\"><a href=\"download.php?audio=$recorded_file.$system_audio_format\" title=\"Listen to call recording\"><img src=\"/icons/small/sound.png\" alt=\"Call recording\" /></a></td>\n";
