@@ -26,7 +26,8 @@ To display the links to the recorded files:
 exten => s,1,Set(MONITOR_FILE=/var/spool/asterisk/monitor/${UNIQUEID})
 exten => s,n,MixMonitor(${MONITOR_FILE}.wav,b)
 }}}
-
+if you use a different file format, see more examples in config.php ( function formatFiles)_
+_
 ===Multiple user access===
 
   * uncomment following section in http.conf file:
