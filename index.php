@@ -116,7 +116,22 @@ foreach ($mod_vars as $key => $val) {
 				}
 			break;
 			case "asterisk-regexp":
-				$$key = "AND $key $pre_like RLIKE '$val[0]'";
+				$ast_dids = preg_split('/\s*,\s*/', $val[0], -1, PREG_SPLIT_NO_EMPTY);
+				$ast_key = '';
+				foreach ($ast_dids as $did) {
+					if (strlen($ast_key) > 0 ) {
+						if ( $pre_like == ' NOT ' ) {
+							$ast_key .= " and ";
+						} else {
+							$ast_key .= " or ";
+						}
+						if ( '_' == substr($did,0,1) ) {
+							$did = substr($did,1);
+						}
+					}
+					$ast_key .= " $key $pre_like RLIKE '$did'";
+				}
+				$$key = "AND ( $ast_key )";
 			break;
 			case "begins_with":
 			default:
