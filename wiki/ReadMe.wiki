@@ -34,14 +34,29 @@ _if you use a different file format, see more examples in [http://code.google.co
   * To enable the CSV dump run the following sql command:
    _GRANT FILE ON `*`.`*` to 'cdrasterisk'@'localhost';_
 
-===Multiple asterisk-regexp support===
+===Regular expressions===
 
-This viewer supports the processing of multiple regular expressions in the field src/dst separated by a comma. 
+    If an Source / Destination number is prefixed by a '`_`'
+    character, it is interpreted as a pattern rather than a
+    literal. In patterns, some characters have special meanings:
 
- For example: 
+  * X - any digit from 0-9
+  * Z - any digit from 1-9
+  * N - any digit from 2-9
+  * [1235-9] - any digit in the brackets (in this example, 1,2,3,5,6,7,8,9)
+  * . - wildcard, matches anything remaining (e.g. `_`9011. matches anything starting with 9011 excluding 9011 itself)
 
-  * src = '`_2XXN, _562., _.0075`' - src any of these numbers
-  * src = '`_!2XXN, _562., _.0075`' - src any other than these numbers 
+    For example, the Source/Destination `_`NXXXXXX would match 7 digit numbers,
+    while `_`1NXXNXXXXXX would represent an area code plus phone number
+    preceded by a one.
+
+
+====This cdr-viewer supports the processing of multiple regular expressions in the Source/Destination name separated by a comma.====
+
+    For example:
+
+        * Source = `'_2XXN, _562., _.0075'`  - src is any of these numbers
+
 
 ===Multiple user access===
 
