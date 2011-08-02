@@ -129,7 +129,7 @@ foreach ($mod_vars as $key => $val) {
 							$did = substr($did,1);
 						}
 					}
-					$ast_key .= " $key $pre_like RLIKE '$did'";
+					$ast_key .= " $key $pre_like RLIKE '^$did\$'";
 				}
 				$$key = "AND ( $ast_key )";
 			break;
