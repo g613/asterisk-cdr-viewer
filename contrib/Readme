@@ -25,6 +25,40 @@ Recording interface
 		exten => s,1,Set(MONITOR_FILE=/var/spool/asterisk/monitor/${UNIQUEID})
 		exten => s,n,MixMonitor(${MONITOR_FILE}.wav,b)
 
+		!!! if you use a different file format, see more examples in config.inc.php ( function formatFiles) !!!
+
+
+CSV dump
+
+    * To enable the CSV dump run the following sql command:
+
+	          GRANT FILE ON *.* to 'cdrasterisk'@'localhost'; 
+
+Regular expressions
+
+	If an Source / Destination number is prefixed by a '_'
+	character, it is interpreted as a pattern rather than a
+	literal. In patterns, some characters have special meanings:
+	
+	   X - any digit from 0-9
+	   Z - any digit from 1-9
+	   N - any digit from 2-9
+	   [1235-9] - any digit in the brackets (in this example, 1,2,3,5,6,7,8,9)
+	   . - wildcard, matches anything remaining (e.g. _9011. matches
+	       anything starting with 9011 excluding 9011 itself)
+	
+	For example, the Source/Destination _NXXXXXX would match 7 digit numbers,
+	while _1NXXNXXXXXX would represent an area code plus phone number
+	preceded by a one.
+
+
+	This cdr-viewer supports the processing of multiple regular expressions in the 
+	Source/Destination name separated by a comma.
+
+    For example: 
+
+	    * Source = '_2XXN, _562., _.0075'  - src is any of these numbers
+
 
 Multiple user access
 
