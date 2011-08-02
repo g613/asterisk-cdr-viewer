@@ -233,7 +233,7 @@ echo '<a id="Graph"></a>';
 
 //NEW GRAPHS
 $group_by_field = $group;
-// ConcurentCalls
+// ConcurrentCalls
 $group_by_field_php = array( '', 32, '' );
 
 switch ($group) {
@@ -419,7 +419,7 @@ if ( isset($_POST['need_chart_cc']) && $_POST['need_chart_cc'] == 'true' ) {
 		}
 	}
 	if ( $tot_calls ) {
-		echo '<p class="center title">Call Detail Record - Concurent Calls by '.$graph_col_title.'</p><table class="cdr">
+		echo '<p class="center title">Call Detail Record - Concurrent Calls by '.$graph_col_title.'</p><table class="cdr">
 		<tr>
 			<th class="end_col">'. $graph_col_title . '</th>
 			<th class="center_col">Total Calls: '. $tot_calls .' / Max Calls: '. $max_calls .'</th>
