@@ -34,6 +34,15 @@ _if you use a different file format, see more examples in [http://code.google.co
   * To enable the CSV dump run the following sql command:
    _GRANT FILE ON `*`.`*` to 'cdrasterisk'@'localhost';_
 
+===Multiple asterisk-regexp support===
+
+This viewer supports the processing of multiple regular expressions in the field src/dst separated by a comma. 
+
+ For example: 
+
+  * src = '`_2XXN, _562., _.0075`' - src any of these numbers
+  * src = '`_!2XXN, _562., _.0075`' - src any other than these numbers 
+
 ===Multiple user access===
 
   * uncomment following section in http.conf file:
