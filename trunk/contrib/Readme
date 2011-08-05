@@ -25,7 +25,7 @@ Recording interface
 		exten => s,1,Set(MONITOR_FILE=/var/spool/asterisk/monitor/${UNIQUEID})
 		exten => s,n,MixMonitor(${MONITOR_FILE}.wav,b)
 
-		!!! if you use a different file format, see more examples in config.inc.php ( function formatFiles) !!!
+		!!! if you use a different file format, see more examples in functions.inc.php ( function formatFiles) !!!
 
 
 CSV dump
