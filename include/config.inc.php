@@ -30,7 +30,9 @@ $system_tmp_dir = '/tmp';
 $system_audio_format = 'wav';
 
 /* Reverse lookup URL where "%n" is replace with the destination number */
-$rev_lookup_url = 'http://www.whitepages.com/search/ReversePhone?full_phone=%n';
+/* $rev_lookup_url = 'http://www.whitepages.com/search/ReversePhone?full_phone=%n'; */
+/* $rev_lookup_url = 'http://mrnumber.com/%n'; */
+$rev_lookup_url = '';
 
 /* User name */
 $cdr_user_name = getenv('REMOTE_USER');

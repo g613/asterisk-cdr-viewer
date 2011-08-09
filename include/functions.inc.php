@@ -72,7 +72,7 @@ function formatApp($app, $lastdata) {
 
 function formatDst($dst, $dcontext) {
 	global $rev_lookup_url;
-	if (strlen($dst) == 11) {
+	if (strlen($dst) == 11 and strlen($rev_lookup_url) > 0 ) {
 		$rev = str_replace('%n', $dst, $rev_lookup_url);
 		echo "    <td class=\"record_col\"><abbr title=\"Destination Context: $dcontext\"><a href=\"$rev\" target=\"reverse\">$dst</a></abbr></td>\n";
 	} else {
