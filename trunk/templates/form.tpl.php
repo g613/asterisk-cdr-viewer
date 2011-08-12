@@ -218,6 +218,12 @@ Not:<input <?php if ( isset($_POST['dispositio_neg'] ) && $_POST['disposition_ne
 <option <?php if (isset($_POST['group']) && $_POST['group'] == 'src') { echo 'selected="selected"'; } ?> value="src">Source Number</option>
 <option <?php if (isset($_POST['group']) && $_POST['group'] == 'dst') { echo 'selected="selected"'; } ?> value="dst">Destination Number</option>
 </optgroup>
+<optgroup label="Tech info">
+<option <?php if (isset($_POST['group']) && $_POST['group'] == 'disposition') { echo 'selected="selected"'; } ?> value="disposition">Disposition</option>
+<option <?php if (isset($_POST['group']) && $_POST['group'] == 'disposition_by_day') { echo 'selected="selected"'; } ?> value="disposition_by_day">Disposition by Day</option>
+<option <?php if (isset($_POST['group']) && $_POST['group'] == 'disposition_by_hour') { echo 'selected="selected"'; } ?> value="disposition_by_hour">Disposition by Hour</option>
+<option <?php if (isset($_POST['group']) && $_POST['group'] == 'dcontext') { echo 'selected="selected"'; } ?> value="dcontext">Destination context</option>
+</optgroup>
 </select></td><td align="left" width="40%">
 <input type="submit" value="Search" />
 </td></td></table>

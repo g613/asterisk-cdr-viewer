@@ -238,6 +238,22 @@ $group_by_field = $group;
 $group_by_field_php = array( '', 32, '' );
 
 switch ($group) {
+	case "disposition_by_day":
+		$graph_col_title = 'Disposition by day';
+		$group_by_field_php = array('%Y-%m-%d / ',17,'');
+		$group_by_field = "CONCAT(DATE_FORMAT(calldate, '$group_by_field_php[0]'),disposition)";
+	break;
+	case "disposition_by_hour":
+		$graph_col_title = 'Disposition by hour';
+		$group_by_field_php = array( '%Y-%m-%d %H / ', 20, '' );
+		$group_by_field = "CONCAT(DATE_FORMAT(calldate, '$group_by_field_php[0]'),disposition)";
+	break;
+	case "disposition":
+		$graph_col_title = 'Disposition';
+	break;
+	case "dcontext":
+		$graph_col_title = 'Destination context';
+	break;
 	case "accountcode":
 		$graph_col_title = 'Account Code';
 	break;
