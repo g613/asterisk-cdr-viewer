@@ -183,8 +183,6 @@ if ( isset($_POST['need_html']) && $_POST['need_html'] == 'true' ) {
 	$result = mysql_query($query) or die("Query failed: [$query] " . (mysql_error()));
 }
 
-echo "<p>$query</p>";
-
 if ( isset($result) ) {
 	$tot_calls_raw = mysql_num_rows($result);
 } else {
