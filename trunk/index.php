@@ -93,6 +93,8 @@ if ( strlen($cdr_user_name) > 0 ) {
 	}
 }
 
+$search_condition = '';
+
 foreach ($mod_vars as $key => $val) {
 	if (is_blank($val[0])) {
 		unset($_POST[$key.'_mod']);
@@ -104,16 +106,16 @@ foreach ($mod_vars as $key => $val) {
 		}
 		switch ($val[1]) {
 			case "contains":
-				$$key = "AND $key $pre_like LIKE '%$val[0]%'";
+				$$key = "$search_condition $key $pre_like LIKE '%$val[0]%'";
 			break;
 			case "ends_with":
-				$$key = "AND $key $pre_like LIKE '%$val[0]'";
+				$$key = "$search_condition $key $pre_like LIKE '%$val[0]'";
 			break;
 			case "exact":
 				if ( $val[2] == 'true' ) {
-					$$key = "AND $key != '$val[0]'";
+					$$key = "$search_condition $key != '$val[0]'";
 				} else {
-					$$key = "AND $key = '$val[0]'";
+					$$key = "$search_condition $key = '$val[0]'";
 				}
 			break;
 			case "asterisk-regexp":
@@ -132,28 +134,40 @@ foreach ($mod_vars as $key => $val) {
 					}
 					$ast_key .= " $key $pre_like RLIKE '^$did\$'";
 				}
-				$$key = "AND ( $ast_key )";
+				$$key = "$search_condition ( $ast_key )";
 			break;
 			case "begins_with":
 			default:
-				$$key = "AND $key $pre_like LIKE '$val[0]%'";
+				$$key = "$search_condition $key $pre_like LIKE '$val[0]%'";
+		}
+		if ( $search_condition == '' ) {
+			if ( isset($_POST['search_mode']) && $_POST['search_mode'] == 'any' ) {
+				$search_condition = ' OR ';
+			} else {
+				$search_condition = ' AND ';
+			}
 		}
 	}
 }
 
 if ( isset($_POST['disposition_neg']) && $_POST['disposition_neg'] == 'true' ) {
-	$disposition = (empty($_POST['disposition']) || $_POST['disposition'] == 'all') ? NULL : "AND disposition != '$_POST[disposition]'";
+	$disposition = (empty($_POST['disposition']) || $_POST['disposition'] == 'all') ? NULL : "$search_condition disposition != '$_POST[disposition]'";
 } else {
-	$disposition = (empty($_POST['disposition']) || $_POST['disposition'] == 'all') ? NULL : "AND disposition = '$_POST[disposition]'";
+	$disposition = (empty($_POST['disposition']) || $_POST['disposition'] == 'all') ? NULL : "$search_condition disposition = '$_POST[disposition]'";
 }
 
-$duration = (!isset($_POST['dur_min']) || is_blank($_POST['dur_max'])) ? NULL : "AND duration BETWEEN '$_POST[dur_min]' AND '$_POST[dur_max]'";
+$duration = (!isset($_POST['dur_min']) || is_blank($_POST['dur_max'])) ? NULL : "$search_condition duration BETWEEN '$_POST[dur_min]' AND '$_POST[dur_max]'";
 $order = empty($_POST['order']) ? 'ORDER BY calldate' : "ORDER BY $_POST[order]";
 $sort = empty($_POST['sort']) ? 'DESC' : $_POST['sort'];
 $group = empty($_POST['group']) ? 'day' : $_POST['group'];
 
 // Build the "WHERE" part of the query
-$where = "WHERE $date_range $channel $dstchannel $src $clid $dst $userfield $accountcode $disposition $duration $cdr_user_name";
+$where = "$channel $dstchannel $src $clid $dst $userfield $accountcode $disposition $duration $cdr_user_name";
+if ( strlen($where) > 9 ) {
+	$where = "WHERE $date_range AND ( $where )";
+} else {
+	$where = "WHERE $date_range";
+}
 
 if ( isset($_POST['need_csv']) && $_POST['need_csv'] == 'true' ) {
 	$csv_file = md5(time() .'-'. $where ).'.csv';
@@ -168,6 +182,8 @@ if ( isset($_POST['need_html']) && $_POST['need_html'] == 'true' ) {
 	$query = "SELECT calldate, clid, src, dst, dcontext, channel, dstchannel, lastapp, lastdata, duration, billsec, disposition, amaflags, accountcode, uniqueid, userfield, unix_timestamp(calldate) as call_timestamp FROM $db_name.$db_table_name $where $order $sort LIMIT $result_limit";
 	$result = mysql_query($query) or die("Query failed: [$query] " . (mysql_error()));
 }
+
+echo "<p>$query</p>";
 
 if ( isset($result) ) {
 	$tot_calls_raw = mysql_num_rows($result);
@@ -361,7 +377,12 @@ if ( isset($_POST['need_chart']) && $_POST['need_chart'] == 'true' ) {
 }
 if ( isset($_POST['need_chart_cc']) && $_POST['need_chart_cc'] == 'true' ) {
 	$date_range = "( (calldate BETWEEN $startdate AND $enddate) or (calldate + interval duration second  BETWEEN $startdate AND $enddate) or ( calldate + interval duration second >= $enddate AND calldate <= $startdate ) )";
-	$where = "WHERE $date_range $channel $dstchannel $src $clid $dst $userfield $accountcode $disposition $duration $cdr_user_name";
+	$where = "$channel $dstchannel $src $clid $dst $userfield $accountcode $disposition $duration $cdr_user_name";
+	if ( strlen($where) > 9 ) {
+		$where = "WHERE $date_range AND ( $where )";
+	} else {
+		$where = "WHERE $date_range";
+	}
 	
 	$tot_calls = 0;
 	$max_calls = 0;
@@ -457,6 +478,44 @@ if ( isset($_POST['need_chart_cc']) && $_POST['need_chart_cc'] == 'true' ) {
 		echo "</table>";
 	}
 	mysql_free_result($result3);
+}
+if ( isset($_POST['need_minutes_report']) && $_POST['need_minutes_report'] == 'true' ) {
+	$query2 = "SELECT $group_by_field AS group_by_field, count(*) AS total_calls, sum(duration), sum(billsec) AS total_duration FROM $db_name.$db_table_name $where GROUP BY group_by_field ORDER BY group_by_field ASC LIMIT $result_limit";
+	$result2 = mysql_query($query2) or die('Query failed: ' . mysql_error());
+
+	$tot_calls = 0;
+	$tot_duration = 0;
+
+	echo '<p class="center title">Call Detail Record - Minutes report by '.$graph_col_title.'</p><table class="cdr">
+		<tr>
+			<th class="end_col">'. $graph_col_title . '</th>
+			<th class="end_col">Call counts</th>
+			<th class="end_col">Billable Sec</th>
+			<th class="end_col">Billable Minutes</th>
+			<th class="end_col">AVG Minutes</th>
+		</tr>';
+
+	while ($row = mysql_fetch_array($result2, MYSQL_NUM)) {
+			
+			$html_duration = sprintf('%02d', intval($row[3]/60)).':'.sprintf('%02d', intval($row[3]%60));
+			$html_duration_avg	= sprintf('%02d', intval(($row[3]/$row[1])/60)).':'.sprintf('%02d', intval(($row[3]/$row[1])%60));
+
+			echo "  <tr>\n";
+			echo "    <td class=\"end_col\">$row[0]</td><td class=\"chart_data\">$row[1]</td><td class=\"chart_data\">$row[3]</td><td class=\"chart_data\">$html_duration</td><td class=\"chart_data\">$html_duration_avg</td>\n";
+			echo "  </tr>\n";
+			
+			$tot_duration += $row[3];
+			$tot_calls += $row[1];
+	}
+	
+	$html_duration = sprintf('%02d', intval($tot_duration/60)).':'.sprintf('%02d', intval($tot_duration%60));
+	$html_duration_avg = sprintf('%02d', intval(($tot_duration/$tot_calls)/60)).':'.sprintf('%02d', intval(($tot_duration/$tot_calls)%60));
+
+	echo "  <tr>\n";
+	echo "    <th class=\"chart_data\">Total</th><th class=\"chart_data\">$tot_calls</th><th class=\"chart_data\">$tot_duration</th><th class=\"chart_data\">$html_duration</th><th class=\"chart_data\">$html_duration_avg</th>\n";
+	echo "  </tr>\n";
+	echo "</table>";
+	mysql_free_result($result2);
 }
 ?>
 
