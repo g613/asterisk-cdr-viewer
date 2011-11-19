@@ -87,3 +87,31 @@ Multiple user access
 
 	access for incomming/outgoing (cid or did=2280) calls for this user: http://your_ip/acdr/ - with login 2280
 
+
+CallRates Support
+
+	* upload csv file to server and add path to the '$callrate_csv_file' variable in config file.
+
+	callrates file format:
+		areacode,callrate_per_minute[,Destination[,rate_type]]
+	
+	for example:
+		011,0.12,Intr,m
+
+	supported rate_type:
+	    * s    - per second tarification
+		* c    - per call tarification
+		* m    - per minute tarification ( default )
+		* 1m+s - combi
+
+Plugins support
+
+   * Plug-in file name should be in the format: plugin_name.inc.php
+
+   * Plug-in must contain function `plugin_name`.
+
+   * Copy your plugin to the directory include/plugins/
+
+   * Add plugin name to include/config.inc.php, to $plugins() variable
+
+   * Please see au_callrates.inc.php plugin for more details.

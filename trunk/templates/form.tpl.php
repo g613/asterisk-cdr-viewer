@@ -78,15 +78,36 @@ for ( $i = 2000; $i <= date('Y'); $i++) {
 <td>Report type : </td>
 <td>
 <input <?php if ( (empty($_POST['need_html']) && empty($_POST['need_chart']) && empty($_POST['need_chart_cc']) && empty($_POST['need_minutes_report']) && empty($_POST['need_csv'])) || ( ! empty($_POST['need_html']) &&  $_POST['need_html'] == 'true' ) ) { echo 'checked="checked"'; } ?> type="checkbox" name="need_html" value="true" /> : CDR search<br />
+<?php
+if ( strlen($callrate_csv_file) > 0 ) {
+	echo '&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" name="use_callrates" value="true"';
+	if ( ! empty($_POST['use_callrates']) &&  $_POST['use_callrates'] == 'true' ) { echo 'checked="checked"'; }
+	echo ' /> with call rates<br/>';
+} 
+?>
 <input <?php if ( ! empty($_POST['need_csv']) && $_POST['need_csv'] == 'true' ) { echo 'checked="checked"'; } ?> type="checkbox" name="need_csv" value="true" /> : CSV file<br/>
 <input <?php if ( ! empty($_POST['need_chart']) && $_POST['need_chart'] == 'true' ) { echo 'checked="checked"'; } ?> type="checkbox" name="need_chart" value="true" /> : Call Graph<br />
 <input <?php if ( ! empty($_POST['need_chart_cc']) && $_POST['need_chart_cc'] == 'true' ) { echo 'checked="checked"'; } ?> type="checkbox" name="need_chart_cc" value="true" /> : Concurrent Calls<br />
 <input <?php if ( ! empty($_POST['need_minutes_report']) && $_POST['need_minutes_report'] == 'true' ) { echo 'checked="checked"'; } ?> type="checkbox" name="need_minutes_report" value="true" /> : Minutes report<br />
 </td>
 </tr>
+<?php
+if ( count($plugins) > 0 ) {
+	echo '<tr><td label for="Plugins">Plugins : </td><td><hr>';
+	foreach ( $plugins as &$p_key ) {
+		echo '<input type="checkbox" name="need_'.$p_key.'" value="true" ';
+		if ( ! empty($_POST['need_'.$p_key]) && $_POST['need_'.$p_key] == 'true' ) { 
+			echo 'checked="checked"'; 
+		}
+		echo ' /> : '. $p_key .'<br />';
+	}
+	echo '</td></tr>';
+}
+?>
 <tr>
 <td><label for="Result limit">Result limit : </label></td>
 <td>
+<hr>
 <input value="<?php 
 if (isset($_POST['limit']) ) { 
 	echo htmlspecialchars($_POST['limit']);
@@ -216,6 +237,7 @@ Seconds
 <option <?php if (isset($_POST['group']) && $_POST['group'] == 'month') { echo 'selected="selected"'; } ?> value="month">Month</option>
 </optgroup>
 <optgroup label="Telephone Number">
+<option <?php if (isset($_POST['group']) && $_POST['group'] == 'clid') { echo 'selected="selected"'; } ?> value="clid">Caller*ID</option>
 <option <?php if (isset($_POST['group']) && $_POST['group'] == 'src') { echo 'selected="selected"'; } ?> value="src">Source Number</option>
 <option <?php if (isset($_POST['group']) && $_POST['group'] == 'dst') { echo 'selected="selected"'; } ?> value="dst">Destination Number</option>
 </optgroup>

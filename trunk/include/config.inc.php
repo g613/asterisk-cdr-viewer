@@ -29,6 +29,15 @@ $system_tmp_dir = '/tmp';
 /* audio file format */
 $system_audio_format = 'wav';
 
+/* Plugins */
+$plugins = array( 'au_callrates' );
+
+/* Call rates */
+//$callrate_csv_file = '/var/www/asterisk-cdr-viewer/callrates.csv';
+$callrate_csv_file = '';
+$callrate_currency = '$';
+$callrate_cache = array();
+
 /* Reverse lookup URL where "%n" is replace with the destination number */
 /* $rev_lookup_url = 'http://www.whitepages.com/search/ReversePhone?full_phone=%n'; */
 /* $rev_lookup_url = 'http://mrnumber.com/%n'; */
@@ -48,6 +57,11 @@ if ( strlen($cdr_user_name) > 0 ) {
 	} elseif ( $is_admin !== false ) {
 		$cdr_user_name = '';
 	}
+}
+
+/* load Plugins */
+foreach ( $plugins as &$p_key ) {
+	require_once "include/plugins/$p_key.inc.php";
 }
 
 ?>

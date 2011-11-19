@@ -210,6 +210,11 @@ if ( $tot_calls_raw ) {
 			<th class="record_col">Duration</th>
 			<th class="record_col">Userfield</th>
 			<th class="record_col">Account</th>
+			<?php
+			if ( isset($_POST['use_callrates']) && $_POST['use_callrates'] == 'true' ) {
+				echo '<th class="record_col">CallRate</th><th class="record_col">CallRate Dst</th>';
+			}
+			?>
 			<th class="img_col"><a href="#CDR" title="Go to the top of the CDR table"><img src="/icons/small/back.png" alt="CDR Table" /></a></th>
 			<th class="img_col"><a href="#Graph" title="Go to the top of the CDR graph"><img src="/icons/small/image2.png" alt="CDR Graph" /></a></th>
 			</tr>
@@ -229,6 +234,11 @@ if ( $tot_calls_raw ) {
 		formatDuration($row['duration'], $row['billsec']);
 		formatUserField($row['userfield']);
 		formatAccountCode($row['accountcode']);
+		if ( isset($_POST['use_callrates']) && $_POST['use_callrates'] == 'true' ) {
+			$rates = callrates($row['dst'],$row['billsec'],$callrate_csv_file);
+			formatMoney($rates[4]);
+			echo "<td>". htmlspecialchars($rates[2]) ."</td>\n";
+		}
 		echo "    <td></td>\n";
 		echo "    <td></td>\n";
 		echo "  </tr>\n";
@@ -276,6 +286,9 @@ switch ($group) {
 	break;
 	case "src":
 		$graph_col_title = 'Source Number';
+	break;
+	case "clid":
+		$graph_col_title = 'Caller*ID';
 	break;
 	case "userfield":
 		$graph_col_title = 'User Field';
@@ -477,6 +490,7 @@ if ( isset($_POST['need_chart_cc']) && $_POST['need_chart_cc'] == 'true' ) {
 	}
 	mysql_free_result($result3);
 }
+
 if ( isset($_POST['need_minutes_report']) && $_POST['need_minutes_report'] == 'true' ) {
 	$query2 = "SELECT $group_by_field AS group_by_field, count(*) AS total_calls, sum(duration), sum(billsec) AS total_duration FROM $db_name.$db_table_name $where GROUP BY group_by_field ORDER BY group_by_field ASC LIMIT $result_limit";
 	$result2 = mysql_query($query2) or die('Query failed: ' . mysql_error());
@@ -498,7 +512,7 @@ if ( isset($_POST['need_minutes_report']) && $_POST['need_minutes_report'] == 't
 			$html_duration = sprintf('%02d', intval($row[3]/60)).':'.sprintf('%02d', intval($row[3]%60));
 			$html_duration_avg	= sprintf('%02d', intval(($row[3]/$row[1])/60)).':'.sprintf('%02d', intval(($row[3]/$row[1])%60));
 
-			echo "  <tr>\n";
+			echo "  <tr  class=\"record\">\n";
 			echo "    <td class=\"end_col\">$row[0]</td><td class=\"chart_data\">$row[1]</td><td class=\"chart_data\">$row[3]</td><td class=\"chart_data\">$html_duration</td><td class=\"chart_data\">$html_duration_avg</td>\n";
 			echo "  </tr>\n";
 			
@@ -515,6 +529,14 @@ if ( isset($_POST['need_minutes_report']) && $_POST['need_minutes_report'] == 't
 	echo "</table>";
 	mysql_free_result($result2);
 }
+
+/* run Plugins */
+foreach ( $plugins as &$p_key ) {
+	if ( ! empty($_POST['need_'.$p_key]) && $_POST['need_'.$p_key] == 'true' ) { 
+		eval( $p_key . '();' );
+	}
+}
+
 ?>
 
 </div>
