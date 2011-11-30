@@ -95,6 +95,8 @@ if ( strlen($cdr_user_name) > 0 ) {
 
 $search_condition = '';
 
+// Build the "WHERE" part of the query
+
 foreach ($mod_vars as $key => $val) {
 	if (is_blank($val[0])) {
 		unset($_POST[$key.'_mod']);
@@ -156,18 +158,27 @@ if ( isset($_POST['disposition_neg']) && $_POST['disposition_neg'] == 'true' ) {
 	$disposition = (empty($_POST['disposition']) || $_POST['disposition'] == 'all') ? NULL : "$search_condition disposition = '$_POST[disposition]'";
 }
 
-$duration = (!isset($_POST['dur_min']) || is_blank($_POST['dur_max'])) ? NULL : "$search_condition duration BETWEEN '$_POST[dur_min]' AND '$_POST[dur_max]'";
+$where = "$channel $src $clid $dstchannel $dst $userfield $accountcode $disposition";
+
+$duration = (!isset($_POST['dur_min']) || is_blank($_POST['dur_max'])) ? NULL : "duration BETWEEN '$_POST[dur_min]' AND '$_POST[dur_max]'";
+
+if ( strlen($duration) > 0 ) {
+	if ( strlen($where) > 7 ) {
+		$where = "$where $search_condition $duration";
+	} else {
+		$where = "$where $duration";
+	}
+}
+
+if ( strlen($where) > 8 ) {
+	$where = "WHERE $date_range AND ( $where ) $cdr_user_name";
+} else {
+	$where = "WHERE $date_range $cdr_user_name";
+}
+
 $order = empty($_POST['order']) ? 'ORDER BY calldate' : "ORDER BY $_POST[order]";
 $sort = empty($_POST['sort']) ? 'DESC' : $_POST['sort'];
 $group = empty($_POST['group']) ? 'day' : $_POST['group'];
-
-// Build the "WHERE" part of the query
-$where = "$channel $dstchannel $src $clid $dst $userfield $accountcode $disposition $duration $cdr_user_name";
-if ( strlen($where) > 9 ) {
-	$where = "WHERE $date_range AND ( $where )";
-} else {
-	$where = "WHERE $date_range";
-}
 
 if ( isset($_POST['need_csv']) && $_POST['need_csv'] == 'true' ) {
 	$csv_file = md5(time() .'-'. $where ).'.csv';
