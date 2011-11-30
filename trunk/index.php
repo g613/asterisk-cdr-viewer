@@ -10,37 +10,37 @@ include 'templates/form.tpl.php';
 $dbconn = mysql_connect( "$db_host:$db_port", $db_user, $db_pass ) or die('Could not connect: ' . mysql_error());
 mysql_select_db($db_name,$dbconn);
 		
-foreach ( array_keys($_POST) as $key ) {
-	$_POST[$key] = preg_replace('/;/', ' ', $_POST[$key]);
-	$_POST[$key] = mysql_real_escape_string($_POST[$key]);
+foreach ( array_keys($_REQUEST) as $key ) {
+	$_REQUEST[$key] = preg_replace('/;/', ' ', $_REQUEST[$key]);
+	$_REQUEST[$key] = mysql_real_escape_string($_REQUEST[$key]);
 }
 
-$startmonth = is_blank($_POST['startmonth']) ? date('m') : $_POST['startmonth'];
-$startyear = is_blank($_POST['startyear']) ? date('Y') : $_POST['startyear'];
+$startmonth = is_blank($_REQUEST['startmonth']) ? date('m') : $_REQUEST['startmonth'];
+$startyear = is_blank($_REQUEST['startyear']) ? date('Y') : $_REQUEST['startyear'];
 
-if (is_blank($_POST['startday'])) {
+if (is_blank($_REQUEST['startday'])) {
 	$startday = '01';
-} elseif (isset($_POST['startday']) && ($_POST['startday'] > date('t', strtotime("$startyear-$startmonth")))) {
-	$startday = $_POST['startday'] = date('t', strtotime("$startyear-$startmonth"));
+} elseif (isset($_REQUEST['startday']) && ($_REQUEST['startday'] > date('t', strtotime("$startyear-$startmonth")))) {
+	$startday = $_REQUEST['startday'] = date('t', strtotime("$startyear-$startmonth"));
 } else {
-	$startday = sprintf('%02d',$_POST['startday']);
+	$startday = sprintf('%02d',$_REQUEST['startday']);
 }
-$starthour = is_blank($_POST['starthour']) ? '00' : sprintf('%02d',$_POST['starthour']);
-$startmin = is_blank($_POST['startmin']) ? '00' : sprintf('%02d',$_POST['startmin']);
+$starthour = is_blank($_REQUEST['starthour']) ? '00' : sprintf('%02d',$_REQUEST['starthour']);
+$startmin = is_blank($_REQUEST['startmin']) ? '00' : sprintf('%02d',$_REQUEST['startmin']);
 
 $startdate = "'$startyear-$startmonth-$startday $starthour:$startmin:00'";
 $start_timestamp = mktime( $starthour, $startmin, 59, $startmonth, $startday, $startyear );
 
-$endmonth = is_blank($_POST['endmonth']) ? date('m') : $_POST['endmonth'];  
-$endyear = is_blank($_POST['endyear']) ? date('Y') : $_POST['endyear'];  
+$endmonth = is_blank($_REQUEST['endmonth']) ? date('m') : $_REQUEST['endmonth'];  
+$endyear = is_blank($_REQUEST['endyear']) ? date('Y') : $_REQUEST['endyear'];  
 
-if (is_blank($_POST['endday']) || (isset($_POST['endday']) && ($_POST['endday'] > date('t', strtotime("$endyear-$endmonth-01"))))) {
-	$endday = $_POST['endday'] = date('t', strtotime("$endyear-$endmonth"));
+if (is_blank($_REQUEST['endday']) || (isset($_REQUEST['endday']) && ($_REQUEST['endday'] > date('t', strtotime("$endyear-$endmonth-01"))))) {
+	$endday = $_REQUEST['endday'] = date('t', strtotime("$endyear-$endmonth"));
 } else {
-	$endday = sprintf('%02d',$_POST['endday']);
+	$endday = sprintf('%02d',$_REQUEST['endday']);
 }
-$endhour = is_blank($_POST['endhour']) ? '23' : sprintf('%02d',$_POST['endhour']);
-$endmin = is_blank($_POST['endmin']) ? '59' : sprintf('%02d',$_POST['endmin']);
+$endhour = is_blank($_REQUEST['endhour']) ? '23' : sprintf('%02d',$_REQUEST['endhour']);
+$endmin = is_blank($_REQUEST['endmin']) ? '59' : sprintf('%02d',$_REQUEST['endmin']);
 
 $enddate = "'$endyear-$endmonth-$endday $endhour:$endmin:59'";
 $end_timestamp = mktime( $endhour, $endmin, 59, $endmonth, $endday, $endyear );
@@ -48,41 +48,41 @@ $end_timestamp = mktime( $endhour, $endmin, 59, $endmonth, $endday, $endyear );
 #
 # asterisk regexp2sqllike
 #
-if ( is_blank($_POST['src']) ) {
+if ( is_blank($_REQUEST['src']) ) {
 	$src_number = NULL;
 } else {
 	$src_number = asteriskregexp2sqllike( 'src', '' );
 }
 
-if ( is_blank($_POST['dst']) ) {
+if ( is_blank($_REQUEST['dst']) ) {
 	$dst_number = NULL;
 } else {
 	$dst_number = asteriskregexp2sqllike( 'dst', '' );
 }
 
 $date_range = "calldate BETWEEN $startdate AND $enddate";
-$mod_vars['channel'][] = is_blank($_POST['channel']) ? NULL : $_POST['channel'];
-$mod_vars['channel'][] = empty($_POST['channel_mod']) ? NULL : $_POST['channel_mod'];
-$mod_vars['channel'][] = empty($_POST['channel_neg']) ? NULL : $_POST['channel_neg'];
+$mod_vars['channel'][] = is_blank($_REQUEST['channel']) ? NULL : $_REQUEST['channel'];
+$mod_vars['channel'][] = empty($_REQUEST['channel_mod']) ? NULL : $_REQUEST['channel_mod'];
+$mod_vars['channel'][] = empty($_REQUEST['channel_neg']) ? NULL : $_REQUEST['channel_neg'];
 $mod_vars['src'][] = $src_number;
-$mod_vars['src'][] = empty($_POST['src_mod']) ? NULL : $_POST['src_mod'];
-$mod_vars['src'][] = empty($_POST['src_neg']) ? NULL : $_POST['src_neg'];
-$mod_vars['clid'][] = is_blank($_POST['clid']) ? NULL : $_POST['clid'];
-$mod_vars['clid'][] = empty($_POST['clid_mod']) ? NULL : $_POST['clid_mod'];
-$mod_vars['clid'][] = empty($_POST['clid_neg']) ? NULL : $_POST['clid_neg'];
-$mod_vars['dstchannel'][] = is_blank($_POST['dstchannel']) ? NULL : $_POST['dstchannel'];
-$mod_vars['dstchannel'][] = empty($_POST['dstchannel_mod']) ? NULL : $_POST['dstchannel_mod'];
-$mod_vars['dstchannel'][] = empty($_POST['dstchannel_neg']) ? NULL : $_POST['dstchannel_neg'];
+$mod_vars['src'][] = empty($_REQUEST['src_mod']) ? NULL : $_REQUEST['src_mod'];
+$mod_vars['src'][] = empty($_REQUEST['src_neg']) ? NULL : $_REQUEST['src_neg'];
+$mod_vars['clid'][] = is_blank($_REQUEST['clid']) ? NULL : $_REQUEST['clid'];
+$mod_vars['clid'][] = empty($_REQUEST['clid_mod']) ? NULL : $_REQUEST['clid_mod'];
+$mod_vars['clid'][] = empty($_REQUEST['clid_neg']) ? NULL : $_REQUEST['clid_neg'];
+$mod_vars['dstchannel'][] = is_blank($_REQUEST['dstchannel']) ? NULL : $_REQUEST['dstchannel'];
+$mod_vars['dstchannel'][] = empty($_REQUEST['dstchannel_mod']) ? NULL : $_REQUEST['dstchannel_mod'];
+$mod_vars['dstchannel'][] = empty($_REQUEST['dstchannel_neg']) ? NULL : $_REQUEST['dstchannel_neg'];
 $mod_vars['dst'][] = $dst_number;
-$mod_vars['dst'][] = empty($_POST['dst_mod']) ? NULL : $_POST['dst_mod'];
-$mod_vars['dst'][] = empty($_POST['dst_neg']) ? NULL : $_POST['dst_neg'];
-$mod_vars['userfield'][] = is_blank($_POST['userfield']) ? NULL : $_POST['userfield'];
-$mod_vars['userfield'][] = empty($_POST['userfield_mod']) ? NULL : $_POST['userfield_mod'];
-$mod_vars['userfield'][] = empty($_POST['userfield_neg']) ? NULL : $_POST['userfield_neg'];
-$mod_vars['accountcode'][] = is_blank($_POST['accountcode']) ? NULL : $_POST['accountcode'];
-$mod_vars['accountcode'][] = empty($_POST['accountcode_mod']) ? NULL : $_POST['accountcode_mod'];
-$mod_vars['accountcode'][] = empty($_POST['accountcode_neg']) ? NULL : $_POST['accountcode_neg'];
-$result_limit = is_blank($_POST['limit']) ? $db_result_limit : $_POST['limit'];
+$mod_vars['dst'][] = empty($_REQUEST['dst_mod']) ? NULL : $_REQUEST['dst_mod'];
+$mod_vars['dst'][] = empty($_REQUEST['dst_neg']) ? NULL : $_REQUEST['dst_neg'];
+$mod_vars['userfield'][] = is_blank($_REQUEST['userfield']) ? NULL : $_REQUEST['userfield'];
+$mod_vars['userfield'][] = empty($_REQUEST['userfield_mod']) ? NULL : $_REQUEST['userfield_mod'];
+$mod_vars['userfield'][] = empty($_REQUEST['userfield_neg']) ? NULL : $_REQUEST['userfield_neg'];
+$mod_vars['accountcode'][] = is_blank($_REQUEST['accountcode']) ? NULL : $_REQUEST['accountcode'];
+$mod_vars['accountcode'][] = empty($_REQUEST['accountcode_mod']) ? NULL : $_REQUEST['accountcode_mod'];
+$mod_vars['accountcode'][] = empty($_REQUEST['accountcode_neg']) ? NULL : $_REQUEST['accountcode_neg'];
+$result_limit = is_blank($_REQUEST['limit']) ? $db_result_limit : $_REQUEST['limit'];
 
 if ( strlen($cdr_user_name) > 0 ) {
 	$cdr_user_name = asteriskregexp2sqllike( 'cdr_user_name', mysql_real_escape_string($cdr_user_name) );
@@ -99,7 +99,7 @@ $search_condition = '';
 
 foreach ($mod_vars as $key => $val) {
 	if (is_blank($val[0])) {
-		unset($_POST[$key.'_mod']);
+		unset($_REQUEST[$key.'_mod']);
 		$$key = NULL;
 	} else {
 		$pre_like = '';
@@ -143,7 +143,7 @@ foreach ($mod_vars as $key => $val) {
 				$$key = "$search_condition $key $pre_like LIKE '$val[0]%'";
 		}
 		if ( $search_condition == '' ) {
-			if ( isset($_POST['search_mode']) && $_POST['search_mode'] == 'any' ) {
+			if ( isset($_REQUEST['search_mode']) && $_REQUEST['search_mode'] == 'any' ) {
 				$search_condition = ' OR ';
 			} else {
 				$search_condition = ' AND ';
@@ -152,15 +152,15 @@ foreach ($mod_vars as $key => $val) {
 	}
 }
 
-if ( isset($_POST['disposition_neg']) && $_POST['disposition_neg'] == 'true' ) {
-	$disposition = (empty($_POST['disposition']) || $_POST['disposition'] == 'all') ? NULL : "$search_condition disposition != '$_POST[disposition]'";
+if ( isset($_REQUEST['disposition_neg']) && $_REQUEST['disposition_neg'] == 'true' ) {
+	$disposition = (empty($_REQUEST['disposition']) || $_REQUEST['disposition'] == 'all') ? NULL : "$search_condition disposition != '$_REQUEST[disposition]'";
 } else {
-	$disposition = (empty($_POST['disposition']) || $_POST['disposition'] == 'all') ? NULL : "$search_condition disposition = '$_POST[disposition]'";
+	$disposition = (empty($_REQUEST['disposition']) || $_REQUEST['disposition'] == 'all') ? NULL : "$search_condition disposition = '$_REQUEST[disposition]'";
 }
 
 $where = "$channel $src $clid $dstchannel $dst $userfield $accountcode $disposition";
 
-$duration = (!isset($_POST['dur_min']) || is_blank($_POST['dur_max'])) ? NULL : "duration BETWEEN '$_POST[dur_min]' AND '$_POST[dur_max]'";
+$duration = (!isset($_REQUEST['dur_min']) || is_blank($_REQUEST['dur_max'])) ? NULL : "duration BETWEEN '$_REQUEST[dur_min]' AND '$_REQUEST[dur_max]'";
 
 if ( strlen($duration) > 0 ) {
 	if ( strlen($where) > 7 ) {
@@ -176,11 +176,11 @@ if ( strlen($where) > 8 ) {
 	$where = "WHERE $date_range $cdr_user_name";
 }
 
-$order = empty($_POST['order']) ? 'ORDER BY calldate' : "ORDER BY $_POST[order]";
-$sort = empty($_POST['sort']) ? 'DESC' : $_POST['sort'];
-$group = empty($_POST['group']) ? 'day' : $_POST['group'];
+$order = empty($_REQUEST['order']) ? 'ORDER BY calldate' : "ORDER BY $_REQUEST[order]";
+$sort = empty($_REQUEST['sort']) ? 'DESC' : $_REQUEST['sort'];
+$group = empty($_REQUEST['group']) ? 'day' : $_REQUEST['group'];
 
-if ( isset($_POST['need_csv']) && $_POST['need_csv'] == 'true' ) {
+if ( isset($_REQUEST['need_csv']) && $_REQUEST['need_csv'] == 'true' ) {
 	$csv_file = md5(time() .'-'. $where ).'.csv';
 	if (! file_exists("$system_tmp_dir/$csv_file")) {
 		$query = "(SELECT 'calldate', 'clid', 'src', 'dst','dcontext', 'channel', 'dstchannel', 'lastapp', 'lastdata', 'duration', 'billsec', 'disposition', 'amaflags', 'accountcode', 'uniqueid', 'userfield') union (SELECT calldate, clid, src, dst, dcontext, channel, dstchannel, lastapp, lastdata, duration, billsec, disposition, amaflags, accountcode, uniqueid, userfield into outfile '$system_tmp_dir/$csv_file' FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"' FROM $db_name.$db_table_name $where $order $sort LIMIT $result_limit)";
@@ -189,7 +189,7 @@ if ( isset($_POST['need_csv']) && $_POST['need_csv'] == 'true' ) {
 	echo "<p class='right title'><a href='download.php?csv=$csv_file'>Click here to download CSV file</a></p>";
 }
 
-if ( isset($_POST['need_html']) && $_POST['need_html'] == 'true' ) {
+if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
 	$query = "SELECT calldate, clid, src, dst, dcontext, channel, dstchannel, lastapp, lastdata, duration, billsec, disposition, amaflags, accountcode, uniqueid, userfield, unix_timestamp(calldate) as call_timestamp FROM $db_name.$db_table_name $where $order $sort LIMIT $result_limit";
 	$result = mysql_query($query) or die("Query failed: [$query] " . (mysql_error()));
 }
@@ -222,7 +222,7 @@ if ( $tot_calls_raw ) {
 			<th class="record_col">Userfield</th>
 			<th class="record_col">Account</th>
 			<?php
-			if ( isset($_POST['use_callrates']) && $_POST['use_callrates'] == 'true' ) {
+			if ( isset($_REQUEST['use_callrates']) && $_REQUEST['use_callrates'] == 'true' ) {
 				echo '<th class="record_col">CallRate</th><th class="record_col">CallRate Dst</th>';
 			}
 			?>
@@ -245,7 +245,7 @@ if ( $tot_calls_raw ) {
 		formatDuration($row['duration'], $row['billsec']);
 		formatUserField($row['userfield']);
 		formatAccountCode($row['accountcode']);
-		if ( isset($_POST['use_callrates']) && $_POST['use_callrates'] == 'true' ) {
+		if ( isset($_REQUEST['use_callrates']) && $_REQUEST['use_callrates'] == 'true' ) {
 			$rates = callrates($row['dst'],$row['billsec'],$callrate_csv_file);
 			formatMoney($rates[4]);
 			echo "<td>". htmlspecialchars($rates[2]) ."</td>\n";
@@ -346,7 +346,7 @@ switch ($group) {
 		$graph_col_title = 'Day';
 }
 
-if ( isset($_POST['need_chart']) && $_POST['need_chart'] == 'true' ) {
+if ( isset($_REQUEST['need_chart']) && $_REQUEST['need_chart'] == 'true' ) {
 	$query2 = "SELECT $group_by_field AS group_by_field, count(*) AS total_calls, sum(duration) AS total_duration FROM $db_name.$db_table_name $where GROUP BY group_by_field ORDER BY group_by_field ASC LIMIT $result_limit";
 	$result2 = mysql_query($query2) or die('Query failed: ' . mysql_error());
 
@@ -397,7 +397,7 @@ if ( isset($_POST['need_chart']) && $_POST['need_chart'] == 'true' ) {
 	}
 	mysql_free_result($result2);
 }
-if ( isset($_POST['need_chart_cc']) && $_POST['need_chart_cc'] == 'true' ) {
+if ( isset($_REQUEST['need_chart_cc']) && $_REQUEST['need_chart_cc'] == 'true' ) {
 	$date_range = "( (calldate BETWEEN $startdate AND $enddate) or (calldate + interval duration second  BETWEEN $startdate AND $enddate) or ( calldate + interval duration second >= $enddate AND calldate <= $startdate ) )";
 	$where = "$channel $dstchannel $src $clid $dst $userfield $accountcode $disposition $duration $cdr_user_name";
 	if ( strlen($where) > 9 ) {
@@ -502,7 +502,7 @@ if ( isset($_POST['need_chart_cc']) && $_POST['need_chart_cc'] == 'true' ) {
 	mysql_free_result($result3);
 }
 
-if ( isset($_POST['need_minutes_report']) && $_POST['need_minutes_report'] == 'true' ) {
+if ( isset($_REQUEST['need_minutes_report']) && $_REQUEST['need_minutes_report'] == 'true' ) {
 	$query2 = "SELECT $group_by_field AS group_by_field, count(*) AS total_calls, sum(duration), sum(billsec) AS total_duration FROM $db_name.$db_table_name $where GROUP BY group_by_field ORDER BY group_by_field ASC LIMIT $result_limit";
 	$result2 = mysql_query($query2) or die('Query failed: ' . mysql_error());
 
@@ -543,7 +543,7 @@ if ( isset($_POST['need_minutes_report']) && $_POST['need_minutes_report'] == 't
 
 /* run Plugins */
 foreach ( $plugins as &$p_key ) {
-	if ( ! empty($_POST['need_'.$p_key]) && $_POST['need_'.$p_key] == 'true' ) { 
+	if ( ! empty($_REQUEST['need_'.$p_key]) && $_REQUEST['need_'.$p_key] == 'true' ) { 
 		eval( $p_key . '();' );
 	}
 }
