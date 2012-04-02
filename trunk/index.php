@@ -212,7 +212,11 @@ if ( $tot_calls_raw ) {
 			<th class="record_col">Call Date</th>
 			<th class="record_col">File</th>
 			<th class="record_col">Src Channel</th>
-			<th class="record_col">CallerID</th>
+			<?php
+				if ( isset($display_column['clid']) and $display_column['clid'] == 1 ) {
+					echo '<th class="record_col">CallerID</th>';
+				}
+			?>
 			<th class="record_col">Source</th>
 			<th class="record_col">Application</th>
 			<th class="record_col">Destination</th>
@@ -220,7 +224,11 @@ if ( $tot_calls_raw ) {
 			<th class="record_col">Disposition</th>
 			<th class="record_col">Duration</th>
 			<th class="record_col">Userfield</th>
-			<th class="record_col">Account</th>
+			<?php
+				if ( isset($display_column['accountcode']) and $display_column['accountcode'] == 1 ) {
+					echo '<th class="record_col">Account</th>';
+				}
+			?>
 			<?php
 			if ( isset($_REQUEST['use_callrates']) && $_REQUEST['use_callrates'] == 'true' ) {
 				echo '<th class="record_col">CallRate</th><th class="record_col">CallRate Dst</th>';
@@ -236,15 +244,19 @@ if ( $tot_calls_raw ) {
 		formatCallDate($row['calldate'],$row['uniqueid']);
 		formatFiles($row);
 		formatChannel($row['channel']);
-		formatClid($row['clid']);
-		formatSrc($row['src']);
+		if ( isset($display_column['clid']) and $display_column['clid'] == 1 ) {
+			formatClid($row['clid']);
+		}
+		formatSrc($row['src'],$row['clid']);
 		formatApp($row['lastapp'], $row['lastdata']);
 		formatDst($row['dst'], $row['dcontext']);
 		formatChannel($row['dstchannel']);
 		formatDisposition($row['disposition'], $row['amaflags']);
 		formatDuration($row['duration'], $row['billsec']);
 		formatUserField($row['userfield']);
-		formatAccountCode($row['accountcode']);
+		if ( isset($display_column['accountcode']) and $display_column['accountcode'] == 1 ) {
+			formatAccountCode($row['accountcode']);
+		}
 		if ( isset($_REQUEST['use_callrates']) && $_REQUEST['use_callrates'] == 'true' ) {
 			$rates = callrates($row['dst'],$row['billsec'],$callrate_csv_file);
 			formatMoney($rates[4]);

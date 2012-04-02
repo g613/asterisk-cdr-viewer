@@ -43,6 +43,11 @@ $callrate_cache = array();
 /* $rev_lookup_url = 'http://mrnumber.com/%n'; */
 $rev_lookup_url = '';
 
+/* enable / disabe column */
+$display_column = array();
+$display_column['clid'] = 0;
+$display_column['accountcode'] = 1;
+
 /* User name */
 $cdr_user_name = getenv('REMOTE_USER');
 
