@@ -50,7 +50,7 @@ if ( strlen($cdr_user_name) > 0 ) {
 	$is_admin = strpos(",$admin_user_names,", ",$cdr_user_name,");
 	if ( $admin_user_names == '*' ) {
 		$cdr_user_name = '';
-	} elseif ( isset($_GET['action']) && $_GET['action'] == 'logout' ) {
+	} elseif ( isset($_REQUEST['action']) && $_REQUEST['action'] == 'logout' ) {
 		header('Status: 401 Unauthorized');
 		header('WWW-Authenticate: Basic realm="Asterisk-CDR-Stat"');
 		exit;
