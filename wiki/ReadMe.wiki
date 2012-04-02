@@ -59,7 +59,7 @@ _if you use a different file format, see more examples in [http://code.google.co
 
 ====Optional CDR columns====
 
-	`clid` and `accountcode` optional column. to enable/disable it please change following variables in config file:
+	`'clid'` and `'accountcode'` optional column. to enable/disable it please change following variables in config file:
 
 {{{
 	/* enable / disabe column */
