@@ -43,13 +43,8 @@ function formatFiles($row) {
 }
 
 /* CDR Table Display Functions */
-function formatCallDate($calldate) {
-	echo "    <td class=\"record_col\">$calldate</td>\n";
-}
-
-function formatUniqueID($uniqueid) {
-	$system = explode('-', $uniqueid, 2);
-	echo "    <td class=\"record_col\"><abbr title=\"UniqueID: $uniqueid\">$system[0]</abbr></td>\n";
+function formatCallDate($calldate,$uniqueid) {
+	echo "    <td class=\"record_col\"><abbr title=\"UniqueID: $uniqueid\">$calldate</abbr></td>\n";
 }
 
 function formatChannel($channel) {
@@ -57,12 +52,17 @@ function formatChannel($channel) {
 	echo "    <td class=\"record_col\"><abbr title=\"Channel: $channel\">$chan_type[0]</abbr></td>\n";
 }
 
-function formatSrc($src, $clid) {
+function formatClid($clid) {
+	$clid = htmlspecialchars($clid);
+	echo "    <td class=\"record_col\">$clid</td>\n";
+}
+
+function formatSrc($src) {
 	if (empty($src)) {
 		echo "    <td class=\"record_col\">UNKNOWN</td>\n";
 	} else {
-		$clid = htmlspecialchars($clid);
-		echo "    <td class=\"record_col\"><abbr title=\"Caller*ID: $clid\">$src</abbr></td>\n";
+		$src = htmlspecialchars($src);
+		echo "    <td class=\"record_col\">$src</td>\n";
 	}
 }
 
@@ -116,7 +116,7 @@ function formatAccountCode($accountcode) {
 function asteriskregexp2sqllike( $source_data, $user_num ) {
 	$number = $user_num;
 	if ( strlen($number) < 1 ) {
-		$number = $_POST[$source_data];
+		$number = $_REQUEST[$source_data];
 	}
 	if ( '__' == substr($number,0,2) ) {
 		$number = substr($number,1);
@@ -133,12 +133,12 @@ function asteriskregexp2sqllike( $source_data, $user_num ) {
 			} elseif ( $chr == '.' ) {
 				$number .= '.+';
 			} elseif ( $chr == '!' ) {
-				$_POST[ $source_data .'_neg' ] = 'true';
+				$_REQUEST[ $source_data .'_neg' ] = 'true';
 			} else {
 				$number .= $chr;
 			}
 		}
-		$_POST[ $source_data .'_mod' ] = 'asterisk-regexp';
+		$_REQUEST[ $source_data .'_mod' ] = 'asterisk-regexp';
 	}
 	return $number;
 }

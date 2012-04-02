@@ -211,8 +211,8 @@ if ( $tot_calls_raw ) {
 			<tr>
 			<th class="record_col">Call Date</th>
 			<th class="record_col">File</th>
-			<th class="record_col">System</th>
 			<th class="record_col">Src Channel</th>
+			<th class="record_col">CallerID</th>
 			<th class="record_col">Source</th>
 			<th class="record_col">Application</th>
 			<th class="record_col">Destination</th>
@@ -233,11 +233,11 @@ if ( $tot_calls_raw ) {
 			$i = 0;
 		}
 		echo "  <tr class=\"record\">\n";
-		formatCallDate($row['calldate']);
+		formatCallDate($row['calldate'],$row['uniqueid']);
 		formatFiles($row);
-		formatUniqueID($row['uniqueid']);
 		formatChannel($row['channel']);
-		formatSrc($row['src'], $row['clid']);
+		formatClid($row['clid']);
+		formatSrc($row['src']);
 		formatApp($row['lastapp'], $row['lastdata']);
 		formatDst($row['dst'], $row['dcontext']);
 		formatChannel($row['dstchannel']);
