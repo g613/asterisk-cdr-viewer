@@ -88,6 +88,15 @@ Multiple user access
 	access for incomming/outgoing (cid or did=2280) calls for this user: http://your_ip/acdr/ - with login 2280
 
 
+Optional CDR columns
+
+	`clid` and `accountcode` optional column. to enable/disable it please change following variables in config file:
+	/* enable / disabe column */
+	$display_column = array();
+	$display_column['clid'] = 0; /* disabled */
+	$display_column['accountcode'] = 1; /* enabled */
+	
+
 CallRates Support
 
 	* upload csv file to server and add path to the '$callrate_csv_file' variable in config file.
