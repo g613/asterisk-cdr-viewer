@@ -53,16 +53,18 @@ function formatChannel($channel) {
 }
 
 function formatClid($clid) {
-	$clid = htmlspecialchars($clid);
+	$clid_only = explode(' <', $clid, 2);
+	$clid = htmlspecialchars($clid_only[0]);
 	echo "    <td class=\"record_col\">$clid</td>\n";
 }
 
-function formatSrc($src) {
+function formatSrc($src,$clid) {
 	if (empty($src)) {
 		echo "    <td class=\"record_col\">UNKNOWN</td>\n";
 	} else {
 		$src = htmlspecialchars($src);
-		echo "    <td class=\"record_col\">$src</td>\n";
+		$clid = htmlspecialchars($clid);
+		echo "    <td class=\"record_col\"><abbr title=\"Caller*ID: $clid\">$src</abbr></td>\n";
 	}
 }
 
