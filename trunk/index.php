@@ -158,6 +158,14 @@ if ( isset($_REQUEST['disposition_neg']) && $_REQUEST['disposition_neg'] == 'tru
 	$disposition = (empty($_REQUEST['disposition']) || $_REQUEST['disposition'] == 'all') ? NULL : "$search_condition disposition = '$_REQUEST[disposition]'";
 }
 
+if ( $search_condition == '' ) {
+	if ( isset($_REQUEST['search_mode']) && $_REQUEST['search_mode'] == 'any' ) {
+		$search_condition = ' OR ';
+	} else {
+		$search_condition = ' AND ';
+	}
+}
+
 $where = "$channel $src $clid $dstchannel $dst $userfield $accountcode $disposition";
 
 $duration = (!isset($_REQUEST['dur_min']) || is_blank($_REQUEST['dur_max'])) ? NULL : "duration BETWEEN '$_REQUEST[dur_min]' AND '$_REQUEST[dur_max]'";
