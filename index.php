@@ -561,6 +561,66 @@ if ( isset($_REQUEST['need_minutes_report']) && $_REQUEST['need_minutes_report']
 	mysql_free_result($result2);
 }
 
+if ( isset($_REQUEST['need_asr_report']) && $_REQUEST['need_asr_report'] == 'true' ) {
+	$query2 = "SELECT $group_by_field AS group_by_field, disposition, count(*) AS total_calls, sum(billsec) AS total_duration FROM $db_name.$db_table_name $where GROUP BY group_by_field,disposition ORDER BY group_by_field ASC LIMIT $result_limit";
+	$result2 = mysql_query($query2) or die('Query failed: ' . mysql_error());
+
+	$tot_calls = 0;
+	$tot_duration = 0;
+
+	echo '<p class="center title">Call Detail Record - ASR / ACD report by '.$graph_col_title.'</p><table class="cdr">
+		<tr>
+			<th class="end_col">'. $graph_col_title . '</th>
+			<th class="end_col">ASR</th>
+			<th class="end_col">ACD</th>
+			<th class="end_col">All calls</th>
+			<th class="end_col">Answered calls</th>
+			<th class="end_col">Billable Sec</th>
+		</tr>';
+
+	$asr_cur_key = '';
+	$asr_answered_calls = 0;
+	$asr_total_calls = 0;
+	$asr_bill_secs = 0;
+
+	$all_asr_answered_calls = 0;
+	$all_asr_total_calls = 0;
+	$all_asr_bill_secs = 0;
+	
+	while ($row = mysql_fetch_array($result2, MYSQL_NUM)) {
+			if ( $asr_cur_key != '' and $row[0] != $asr_cur_key ) {
+				echo "  <tr  class=\"record\">\n";
+				echo "    <td class=\"end_col\">$asr_cur_key</td></td><td class=\"chart_data\">",intval(($asr_answered_calls/$asr_total_calls)*100),"</td><td class=\"chart_data\">",intval($asr_bill_secs/($asr_answered_calls?$asr_answered_calls:1)),"<td class=\"chart_data\">$asr_total_calls</td><td class=\"chart_data\">$asr_answered_calls</td><td class=\"chart_data\">$asr_bill_secs</td>\n";
+				echo "  </tr>\n";
+				$asr_answered_calls = $asr_total_calls = $asr_bill_secs = 0;
+			}
+			$asr_total_calls += $row[2];
+			$asr_bill_secs += $row[3];
+			
+			$all_asr_total_calls += $row[2];
+			$all_asr_bill_secs += $row[3];
+			
+			if ( $row[1] == 'ANSWERED' ) {
+				$asr_answered_calls += $row[2];
+				$all_asr_answered_calls += $row[2]; 
+			}
+			$asr_cur_key = $row[0];
+			
+	}
+	if ( $asr_cur_key != '' ) {
+		echo "  <tr  class=\"record\">\n";
+		echo "    <td class=\"end_col\">$asr_cur_key</td></td><td class=\"chart_data\">",intval(($asr_answered_calls/$asr_total_calls)*100),"</td><td class=\"chart_data\">",intval($asr_bill_secs/($asr_answered_calls?$asr_answered_calls:1)),"<td class=\"chart_data\">$asr_total_calls</td><td class=\"chart_data\">$asr_answered_calls</td><td class=\"chart_data\">$asr_bill_secs</td>","\n";
+		echo "  </tr>\n";
+	}
+
+	echo "  <tr>\n";
+	echo "    <th class=\"chart_data\">Total</th></th><th class=\"chart_data\">",intval(($all_asr_answered_calls/$all_asr_total_calls)*100),"</th><th class=\"chart_data\">",intval($all_asr_bill_secs/($all_asr_answered_calls?$all_asr_answered_calls:1)),"<th class=\"chart_data\">$all_asr_total_calls</th><th class=\"chart_data\">$all_asr_answered_calls</th><th class=\"chart_data\">$all_asr_bill_secs</th>","\n";
+	echo "  </tr>\n";
+	echo "</table>";
+
+	mysql_free_result($result2);
+}
+
 /* run Plugins */
 foreach ( $plugins as &$p_key ) {
 	if ( ! empty($_REQUEST['need_'.$p_key]) && $_REQUEST['need_'.$p_key] == 'true' ) { 
