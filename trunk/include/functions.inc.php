@@ -9,11 +9,14 @@ function formatFiles($row) {
 	/* 
 		caller-called-timestamp.wav 
 	*/
-	/* $recorded_file = $row['src'] .'-'. $row['dst'] .'-'. $row['call_timestamp'] */
+	/* 
+	$recorded_file = $row['src'] .'-'. $row['dst'] .'-'. $row['call_timestamp']
+	*/
 	/* ============================================================================ */	
 
 	/* 
-		ends at the uniqueid.wav, for example: date-time-uniqueid.wav 
+		ends at the uniqueid.wav, for example: 
+												date-time-uniqueid.wav 
 	
 		thanks to Beto Reyes
 	*/
@@ -25,7 +28,50 @@ function formatFiles($row) {
 		$recorded_file = $row['uniqueid'];
 	}
 	*/
-	/* ============================================================================ */	
+	/* ============================================================================ */
+
+	/*
+	   multi-dir search as variant of "*uniqueid.wav"
+		example: (tree /var/spool/asterisk/monitor)
+
+    |-- in
+    |   |-- 4951234567
+    |   |   `-- 20120101_234231_4956401234_to_74951234567_1307542950.0.wav
+    |   `-- 4997654321
+    |       `-- 20120202_234231_4956401234_to_74997654321_1303542950.0.wav
+    `-- out
+        |-- msk
+        |   `-- 20120125_211231_4956401234_to_74951234567_1307542950.0.wav
+        `-- region
+            `-- 20120112_211231_4956405570_to_74952210533_1307542950.0.wav
+
+      6 directories, 4 files
+
+	  thanks to Dien (Alexey) from sadmin.ru
+	*/
+	/*
+	$found=array();
+	global $found;
+
+	function glob_recursive($dir, $mask) {
+		global $found;
+		foreach(glob($dir.'/*') as $filename){
+			if(strtolower(substr($filename, strlen($filename)-strlen($mask), strlen($mask)))==strtolower($mask))
+			 	$found[]=$filename;
+			if(is_dir($filename)) glob_recursive($filename, $mask);
+		};
+	};
+
+	glob_recursive($system_monitor_dir, $row['uniqueid'].".".$system_audio_format);
+
+	if (count($found)>0) {
+		$recorded_subdir=dirname(substr($found[0],strlen($system_monitor_dir)));
+		$recorded_file = $recorded_subdir."/".basename($found[0],".$system_audio_format");
+	} else {
+		 $recorded_file = $row['uniqueid'];
+	};
+	*/
+	/* ============================================================================ */
 
 	/* 
 		uniqueid.wav 
