@@ -6,7 +6,7 @@ header('Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-ch
 header('Pragma: no-cache');
 
 if (isset($_REQUEST['audio'])) {
-	$extension = strtolower(substr(strrchr($_REQUEST[audio],"."),1));
+	$extension = strtolower(substr(strrchr($_REQUEST['audio'],"."),1));
 	$ctype ='';
 	switch( $extension ) {
 		case "wav16":
