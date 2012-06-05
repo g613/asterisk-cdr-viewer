@@ -31,8 +31,10 @@ function formatFiles($row) {
 	/* ============================================================================ */
 
 	/*
-	   multi-dir search as variant of "*uniqueid.wav"
-		example: (tree /var/spool/asterisk/monitor)
+		This is a multi-dir search script for filenames like "/var/spool/asterisk/monitor/dir1/dir2/dir3/*uniqueid*.*"
+		Doesn't matter, WAV, MP3 or other file format, only UNIQID  is  required at the end of the filename 
+		;---------------------------------------------------------------------------  
+	   example: (tree /var/spool/asterisk/monitor)
 
     |-- in
     |   |-- 4951234567
@@ -46,30 +48,57 @@ function formatFiles($row) {
             `-- 20120112_211231_4956405570_to_74952210533_1307542950.0.wav
 
       6 directories, 4 files
-
-	  thanks to Dien (Alexey) from sadmin.ru
+		;----------------------------------------------------------------------------
+	   added by Dein admin@sadmin.ru         
 	*/
+	
 	/*
-	$found=array();
-	global $found;
+	//************ Get a list of subdirectories as array to search by glob function  **************
+	if (!function_exists('get_dir_list')) {
+		function get_dir_list($dir){
+			global $dirlist;			
+			$dirlist=array();
+			if (!function_exists('find_dirs_recursive')) {
+				function find_dirs_recursive($sdir) {
+					global $dirlist;
+					foreach(glob($sdir) as $filename) {
+						//echo $filename;
+						if(is_dir($filename)) {
+							$dirlist[]=$filename;
+							find_dirs_recursive($filename."/*");
+						};//endif
+					};//endforeach
+				}; //endfunc                                                                                               
+			};//endif exists
+			find_dirs_recursive($dir."/*");
+		};//endfunc
+	}
 
-	function glob_recursive($dir, $mask) {
-		global $found;
-		foreach(glob($dir.'/*') as $filename){
-			if(strtolower(substr($filename, strlen($filename)-strlen($mask), strlen($mask)))==strtolower($mask))
-			 	$found[]=$filename;
-			if(is_dir($filename)) glob_recursive($filename, $mask);
-		};
-	};
+	//*************** Main function  ************
+	if (!function_exists('find_record_by_uniqid')) {
+		function find_record_by_uniqid($path,$uniqid){
+			global $dirlist;
+			if (sizeof($dirlist) == 0 ){
+				get_dir_list($path);
+			};//endif size==0
 
-	glob_recursive($system_monitor_dir, $row['uniqueid'].".".$system_audio_format);
+			if (sizeof($dirlist) == 0 ) {return "SOME ERROR, dirlist is empty";};
 
-	if (count($found)>0) {
-		$recorded_subdir=dirname(substr($found[0],strlen($system_monitor_dir)));
-		$recorded_file = $recorded_subdir."/".basename($found[0],".$system_audio_format");
-	} else {
-		 $recorded_file = $row['uniqueid'];
-	};
+			$found = "NOTHING FOUND";
+			foreach ($dirlist as $curdir) {
+				$res=glob($curdir."/*".$uniqid.".*");
+				if ($res) {$found=$res[0]; break;};
+			};//endforeach
+
+			$res=str_replace($path,"",$found);	//cut $path from full filename 
+			
+			return $res;			//to be compartable with func. formatFiles($row)
+
+		};//endfunc
+	}
+	
+	$recorded_file = find_record_by_uniqid($system_monitor_dir,$row['uniqueid']);
+	
 	*/
 	/* ============================================================================ */
 
@@ -83,6 +112,8 @@ function formatFiles($row) {
 		echo "    <td class=\"record_col\"><a href=\"download.php?audio=$recorded_file.$system_audio_format\" title=\"Listen to call recording\"><img src=\"/icons/small/sound.png\" alt=\"Call recording\" /></a></td>\n";
 	} elseif (file_exists("$system_fax_archive_dir/$recorded_file.tif")) {
 		echo "    <td class=\"record_col\"><a href=\"download.php?fax=$recorded_file.tif\" title=\"View FAX image\"><img src=\"/icons/small/text.png\" alt=\"FAX image\" /></a></td>\n";
+	} elseif (file_exists("$system_monitor_dir/$recorded_file")) {
+		echo "    <td class=\"record_col\"><a href=\"download.php?audio=$recorded_file\" title=\"Listen to call recording\"><img src=\"/icons/small/sound.png\" alt=\"Call recording\" /></a></td>\n";
 	} else {
 		echo "    <td class=\"record_col\"></td>\n";
 	}
