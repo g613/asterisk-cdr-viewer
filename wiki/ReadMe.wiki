@@ -29,11 +29,6 @@ exten => s,n,MixMonitor(${MONITOR_FILE}.wav,b)
 
 _if you use a different file format, see more examples in [http://code.google.com/p/asterisk-cdr-viewer/source/browse/trunk/include/functions.inc.php functions.inc.php ( function formatFiles)]_
 
-===CSV dump===
-
-  * To enable the CSV dump run the following sql command:
-   _GRANT FILE ON `*`.`*` to 'cdrasterisk'@'localhost';_
-
 ===Regular expressions===
 
     If an Source / Destination number is prefixed by a '`_`'
