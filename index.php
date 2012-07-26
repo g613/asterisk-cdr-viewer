@@ -6,13 +6,18 @@ require_once 'include/functions.inc.php';
 include 'templates/header.tpl.php';
 include 'templates/form.tpl.php';
 
+try {
+	$dbh = new PDO("$db_type:host=$db_host;port=$db_port;dbname=$db_name", $db_user, $db_pass);
+}
+catch (PDOException $e) {
+	echo "\nPDO::errorInfo():\n";
+	print $e->getMessage();
+}
+
 // Connecting, selecting database
-$dbconn = mysql_connect( "$db_host:$db_port", $db_user, $db_pass ) or die('Could not connect: ' . mysql_error());
-mysql_select_db($db_name,$dbconn);
-		
 foreach ( array_keys($_REQUEST) as $key ) {
 	$_REQUEST[$key] = preg_replace('/;/', ' ', $_REQUEST[$key]);
-	$_REQUEST[$key] = mysql_real_escape_string($_REQUEST[$key]);
+	$_REQUEST[$key] = substr($dbh->quote($_REQUEST[$key]),1,-1);
 }
 
 $startmonth = is_blank($_REQUEST['startmonth']) ? date('m') : $_REQUEST['startmonth'];
@@ -82,10 +87,10 @@ $mod_vars['userfield'][] = empty($_REQUEST['userfield_neg']) ? NULL : $_REQUEST[
 $mod_vars['accountcode'][] = is_blank($_REQUEST['accountcode']) ? NULL : $_REQUEST['accountcode'];
 $mod_vars['accountcode'][] = empty($_REQUEST['accountcode_mod']) ? NULL : $_REQUEST['accountcode_mod'];
 $mod_vars['accountcode'][] = empty($_REQUEST['accountcode_neg']) ? NULL : $_REQUEST['accountcode_neg'];
-$result_limit = is_blank($_REQUEST['limit']) ? $db_result_limit : $_REQUEST['limit'];
+$result_limit = is_blank($_REQUEST['limit']) ? $db_result_limit : intval($_REQUEST['limit']);
 
 if ( strlen($cdr_user_name) > 0 ) {
-	$cdr_user_name = asteriskregexp2sqllike( 'cdr_user_name', mysql_real_escape_string($cdr_user_name) );
+	$cdr_user_name = asteriskregexp2sqllike( 'cdr_user_name', substr($dbh->quote($cdr_user_name),1,-1) );
 	if ( isset($mod_vars['cdr_user_name']) and $mod_vars['cdr_user_name'][2] == 'asterisk-regexp' ) {
 		$cdr_user_name = " AND ( dst RLIKE '$cdr_user_name' or src RLIKE '$cdr_user_name' )";
 	} else {
@@ -191,94 +196,160 @@ $group = empty($_REQUEST['group']) ? 'day' : $_REQUEST['group'];
 if ( isset($_REQUEST['need_csv']) && $_REQUEST['need_csv'] == 'true' ) {
 	$csv_file = md5(time() .'-'. $where ).'.csv';
 	if (! file_exists("$system_tmp_dir/$csv_file")) {
-		$query = "(SELECT 'calldate', 'clid', 'src', 'dst','dcontext', 'channel', 'dstchannel', 'lastapp', 'lastdata', 'duration', 'billsec', 'disposition', 'amaflags', 'accountcode', 'uniqueid', 'userfield') union (SELECT calldate, clid, src, dst, dcontext, channel, dstchannel, lastapp, lastdata, duration, billsec, disposition, amaflags, accountcode, uniqueid, userfield into outfile '$system_tmp_dir/$csv_file' FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"' FROM $db_name.$db_table_name $where $order $sort LIMIT $result_limit)";
-		$result = mysql_query($query) or die("Query failed: [$query] " . (mysql_error()));
+		$handle = fopen("$system_tmp_dir/$csv_file", "w");
+		$query = "SELECT calldate, clid, src, dst, dcontext, channel, dstchannel, lastapp, lastdata, duration, billsec, disposition, amaflags, accountcode, uniqueid, userfield FROM $db_name.$db_table_name $where $order $sort LIMIT $result_limit";
+		try {
+			$sth = $dbh->query($query);
+		}
+		catch (PDOException $e) {
+			print $e->getMessage();
+		}
+		if (!$sth) {
+			echo "\nPDO::errorInfo():\n";
+			print_r($dbh->errorInfo());
+		}
+		fwrite($handle,"calldate,clid,src,dst,dcontext,channel,dstchannel,lastapp,lastdata,duration,billsec,disposition,amaflags,accountcode,uniqueid,userfield\n");
+		while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
+			$csv_line[0] 	= $row['calldate'];
+			$csv_line[1] 	= $row['clid'];
+			$csv_line[2] 	= $row['src'];
+			$csv_line[3] 	= $row['dst'];
+			$csv_line[4] 	= $row['dcontext'];
+			$csv_line[5]	= $row['channel'];
+			$csv_line[6] 	= $row['dstchannel'];
+			$csv_line[7] 	= $row['lastapp'];
+			$csv_line[8]	= $row['lastdata'];
+			$csv_line[9]	= $row['duration'];
+			$csv_line[10]	= $row['billsec'];
+			$csv_line[11]	= $row['disposition'];
+			$csv_line[12]	= $row['amaflags'];
+			$csv_line[13]	= $row['accountcode'];
+			$csv_line[14]	= $row['uniqueid'];
+			$csv_line[15]	= $row['userfield'];
+			$data = '';
+			for ($i = 0; $i < count($csv_line); $i++) {
+				/* If the string contains a comma, enclose it in double-quotes. */
+				if (strpos($csv_line[$i], ",") !== FALSE) {
+					$csv_line[$i] = "\"" . $csv_line[$i] . "\"";
+				}
+				if ($i != count($csv_line) - 1) {
+					$data = $data . $csv_line[$i] . ",";
+				} else {
+					$data = $data . $csv_line[$i];
+				}
+			}
+			unset($csv_line);
+			fwrite($handle,"$data\n");
+		}
+		fclose($handle);
+		$sth = NULL;
 	}
 	echo "<p class='right title'><a href='download.php?csv=$csv_file'>Click here to download CSV file</a></p>";
 }
 
 if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
-	$query = "SELECT calldate, clid, src, dst, dcontext, channel, dstchannel, lastapp, lastdata, duration, billsec, disposition, amaflags, accountcode, uniqueid, userfield, unix_timestamp(calldate) as call_timestamp FROM $db_name.$db_table_name $where $order $sort LIMIT $result_limit";
-	$result = mysql_query($query) or die("Query failed: [$query] " . (mysql_error()));
-}
-
-if ( isset($result) ) {
-	$tot_calls_raw = mysql_num_rows($result);
-} else {
-	$tot_calls_raw = 0;
-}
-
-if ( $tot_calls_raw ) {
-	echo '<p class="center title">Call Detail Record - Search Returned '. $tot_calls_raw .' Calls </p><table class="cdr">';
-	
-	$i = $h_step - 1;
-	while ($row = mysql_fetch_array($result, MYSQL_ASSOC)) {
-		++$i;
-		if ($i == $h_step) {
-		?>
-			<tr>
-			<th class="record_col">Call Date</th>
-			<th class="record_col">File</th>
-			<th class="record_col">Src Channel</th>
-			<?php
-				if ( isset($display_column['clid']) and $display_column['clid'] == 1 ) {
-					echo '<th class="record_col">CallerID</th>';
-				}
-			?>
-			<th class="record_col">Source</th>
-			<th class="record_col">Application</th>
-			<th class="record_col">Destination</th>
-			<th class="record_col">Dst Channel</th>
-			<th class="record_col">Disposition</th>
-			<th class="record_col">Duration</th>
-			<th class="record_col">Userfield</th>
-			<?php
-				if ( isset($display_column['accountcode']) and $display_column['accountcode'] == 1 ) {
-					echo '<th class="record_col">Account</th>';
-				}
-			?>
-			<?php
-			if ( isset($_REQUEST['use_callrates']) && $_REQUEST['use_callrates'] == 'true' ) {
-				echo '<th class="record_col">CallRate</th><th class="record_col">CallRate Dst</th>';
-			}
-			?>
-			<th class="img_col"><a href="#CDR" title="Go to the top of the CDR table"><img src="/icons/small/back.png" alt="CDR Table" /></a></th>
-			<th class="img_col"><a href="#Graph" title="Go to the top of the CDR graph"><img src="/icons/small/image2.png" alt="CDR Graph" /></a></th>
-			</tr>
-			<?php
-			$i = 0;
-		}
-		echo "  <tr class=\"record\">\n";
-		formatCallDate($row['calldate'],$row['uniqueid']);
-		formatFiles($row);
-		formatChannel($row['channel']);
-		if ( isset($display_column['clid']) and $display_column['clid'] == 1 ) {
-			formatClid($row['clid']);
-		}
-		formatSrc($row['src'],$row['clid']);
-		formatApp($row['lastapp'], $row['lastdata']);
-		formatDst($row['dst'], $row['dcontext']);
-		formatChannel($row['dstchannel']);
-		formatDisposition($row['disposition'], $row['amaflags']);
-		formatDuration($row['duration'], $row['billsec']);
-		formatUserField($row['userfield']);
-		if ( isset($display_column['accountcode']) and $display_column['accountcode'] == 1 ) {
-			formatAccountCode($row['accountcode']);
-		}
-		if ( isset($_REQUEST['use_callrates']) && $_REQUEST['use_callrates'] == 'true' ) {
-			$rates = callrates($row['dst'],$row['billsec'],$callrate_csv_file);
-			formatMoney($rates[4]);
-			echo "<td>". htmlspecialchars($rates[2]) ."</td>\n";
-		}
-		echo "    <td></td>\n";
-		echo "    <td></td>\n";
-		echo "  </tr>\n";
+	$query = "SELECT count(*) FROM $db_name.$db_table_name $where LIMIT $result_limit";
+	try {
+		$sth = $dbh->query($query);
 	}
-	echo "</table>";
-}
+	catch (PDOException $e) {
+		print $e->getMessage();
+	}
+	if (!$sth) {
+		echo "\nPDO::errorInfo():\n";
+		print_r($dbh->errorInfo());
+	} else {
+		$tot_calls_raw = $sth->fetchColumn();
+		$sth = NULL;
+	}
 
-if ( isset($result) ) {
-	mysql_free_result($result);
+	if ( $tot_calls_raw ) {
+
+		if ( $tot_calls_raw > $result_limit ) {
+			echo '<p class="center title">Call Detail Record - Search Returned '. $result_limit .' of '. $tot_calls_raw .' Calls </p><table class="cdr">';
+		} else {
+			echo '<p class="center title">Call Detail Record - Search Returned '. $tot_calls_raw .' Calls </p><table class="cdr">';
+		}
+
+		$i = $h_step - 1;
+
+		try {
+		
+		$query = "SELECT calldate, clid, src, dst, dcontext, channel, dstchannel, lastapp, lastdata, duration, billsec, disposition, amaflags, accountcode, uniqueid, userfield, unix_timestamp(calldate) as call_timestamp FROM $db_name.$db_table_name $where $order $sort LIMIT $result_limit";
+		$sth = $dbh->query($query);
+		if (!$sth) {
+			echo "\nPDO::errorInfo():\n";
+			print_r($dbh->errorInfo());
+		}
+		while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
+			++$i;
+			if ($i == $h_step) {
+			?>
+				<tr>
+				<th class="record_col">Call Date</th>
+				<th class="record_col">File</th>
+				<th class="record_col">Src Channel</th>
+				<?php
+					if ( isset($display_column['clid']) and $display_column['clid'] == 1 ) {
+						echo '<th class="record_col">CallerID</th>';
+					}
+				?>
+				<th class="record_col">Source</th>
+				<th class="record_col">Application</th>
+				<th class="record_col">Destination</th>
+				<th class="record_col">Dst Channel</th>
+				<th class="record_col">Disposition</th>
+				<th class="record_col">Duration</th>
+				<th class="record_col">Userfield</th>
+				<?php
+					if ( isset($display_column['accountcode']) and $display_column['accountcode'] == 1 ) {
+						echo '<th class="record_col">Account</th>';
+					}
+				?>
+				<?php
+				if ( isset($_REQUEST['use_callrates']) && $_REQUEST['use_callrates'] == 'true' ) {
+					echo '<th class="record_col">CallRate</th><th class="record_col">CallRate Dst</th>';
+				}
+				?>
+				<th class="img_col"><a href="#CDR" title="Go to the top of the CDR table"><img src="/icons/small/back.png" alt="CDR Table" /></a></th>
+				<th class="img_col"><a href="#Graph" title="Go to the top of the CDR graph"><img src="/icons/small/image2.png" alt="CDR Graph" /></a></th>
+				</tr>
+				<?php
+				$i = 0;
+			}
+			echo "  <tr class=\"record\">\n";
+			formatCallDate($row['calldate'],$row['uniqueid']);
+			formatFiles($row);
+			formatChannel($row['channel']);
+			if ( isset($display_column['clid']) and $display_column['clid'] == 1 ) {
+				formatClid($row['clid']);
+			}
+			formatSrc($row['src'],$row['clid']);
+			formatApp($row['lastapp'], $row['lastdata']);
+			formatDst($row['dst'], $row['dcontext']);
+			formatChannel($row['dstchannel']);
+			formatDisposition($row['disposition'], $row['amaflags']);
+			formatDuration($row['duration'], $row['billsec']);
+			formatUserField($row['userfield']);
+			if ( isset($display_column['accountcode']) and $display_column['accountcode'] == 1 ) {
+				formatAccountCode($row['accountcode']);
+			}
+			if ( isset($_REQUEST['use_callrates']) && $_REQUEST['use_callrates'] == 'true' ) {
+				$rates = callrates($row['dst'],$row['billsec'],$callrate_csv_file);
+				formatMoney($rates[4]);
+				echo "<td>". htmlspecialchars($rates[2]) ."</td>\n";
+			}
+			echo "    <td></td>\n";
+			echo "    <td></td>\n";
+			echo "  </tr>\n";
+		}
+		}
+		catch (PDOException $e) {
+			print $e->getMessage();
+		}
+		echo "</table>";
+		$sth = NULL;
+	}
 }
 ?>
 
@@ -368,7 +439,6 @@ switch ($group) {
 
 if ( isset($_REQUEST['need_chart']) && $_REQUEST['need_chart'] == 'true' ) {
 	$query2 = "SELECT $group_by_field AS group_by_field, count(*) AS total_calls, sum(duration) AS total_duration FROM $db_name.$db_table_name $where GROUP BY group_by_field ORDER BY group_by_field ASC LIMIT $result_limit";
-	$result2 = mysql_query($query2) or die('Query failed: ' . mysql_error());
 
 	$tot_calls = 0;
 	$tot_duration = 0;
@@ -377,17 +447,28 @@ if ( isset($_REQUEST['need_chart']) && $_REQUEST['need_chart'] == 'true' ) {
 	$tot_duration_secs = 0;
 	$result_array = array();
 
-	while ($row = mysql_fetch_array($result2, MYSQL_NUM)) {
-		$tot_duration_secs += $row[2];
-		$tot_calls += $row[1];
-		if ( $row[1] > $max_calls ) {
-			$max_calls = $row[1];
+	try {
+		$sth = $dbh->query($query2);
+		if (!$sth) {
+			echo "\nPDO::errorInfo():\n";
+			print_r($dbh->errorInfo());
 		}
-		if ( $row[2] > $max_duration ) {
-			$max_duration = $row[2];
+		while ($row = $sth->fetch(PDO::FETCH_NUM)) {
+			$tot_duration_secs += $row[2];
+			$tot_calls += $row[1];
+			if ( $row[1] > $max_calls ) {
+				$max_calls = $row[1];
+			}
+			if ( $row[2] > $max_duration ) {
+				$max_duration = $row[2];
+			}
+			array_push($result_array,$row);
 		}
-		array_push($result_array,$row);
 	}
+	catch (PDOException $e) {
+		print $e->getMessage();
+	}
+	$sth = NULL;
 	$tot_duration = sprintf('%02d', intval($tot_duration_secs/60)).':'.sprintf('%02d', intval($tot_duration_secs%60));
 
 	if ( $tot_calls ) {
@@ -415,7 +496,6 @@ if ( isset($_REQUEST['need_chart']) && $_REQUEST['need_chart'] == 'true' ) {
 		}
 		echo "</table>";
 	}
-	mysql_free_result($result2);
 }
 if ( isset($_REQUEST['need_chart_cc']) && $_REQUEST['need_chart_cc'] == 'true' ) {
 	$date_range = "( (calldate BETWEEN $startdate AND $enddate) or (calldate + interval duration second  BETWEEN $startdate AND $enddate) or ( calldate + interval duration second >= $enddate AND calldate <= $startdate ) )";
@@ -435,61 +515,82 @@ if ( isset($_REQUEST['need_chart_cc']) && $_REQUEST['need_chart_cc'] == 'true' )
 		/* not date time fields */
 		$query3 = "SELECT $group_by_field AS group_by_field, count(*) AS total_calls, unix_timestamp(calldate) AS ts, duration FROM $db_name.$db_table_name $where GROUP BY group_by_field, unix_timestamp(calldate) ORDER BY group_by_field ASC LIMIT $result_limit";
 
-		$result3 = mysql_query($query3) or die("Query failed[ $query3 ]: " . mysql_error());
-		$group_by_str = '';
-		while ($row = mysql_fetch_array($result3, MYSQL_NUM)) {
-			if ( $group_by_str != $row[0] ) {
-				$group_by_str = $row[0];
-				$result_array = array();
+		try {
+			$sth = $dbh->query($query3);
+			if (!$sth) {
+				echo "\nPDO::errorInfo():\n";
+				print_r($dbh->errorInfo());
 			}
-			for ( $i=$row[2]; $i<=$row[2]+$row[3]; ++$i ) {
-				if ( isset($result_array[ "$i" ]) ) {
-					$result_array[ "$i" ] += $row[1];
-				} else {
-					$result_array[ "$i" ] = $row[1];
+			$group_by_str = '';
+			while ($row = $sth->fetch(PDO::FETCH_NUM)) {
+				if ( $group_by_str != $row[0] ) {
+					$group_by_str = $row[0];
+					$result_array = array();
 				}
-				if ( $max_calls < $result_array[ "$i" ] ) {
-					$max_calls = $result_array[ "$i" ];
+				for ( $i=$row[2]; $i<=$row[2]+$row[3]; ++$i ) {
+					if ( isset($result_array[ "$i" ]) ) {
+						$result_array[ "$i" ] += $row[1];
+					} else {
+						$result_array[ "$i" ] = $row[1];
+					}
+					if ( $max_calls < $result_array[ "$i" ] ) {
+						$max_calls = $result_array[ "$i" ];
+					}
+					if ( ! isset($result_array_cc[ $row[0] ]) || $result_array_cc[ $row[0] ][1] < $result_array[ "$i" ] ) {
+						$result_array_cc[ "$row[0]" ][0] = $i;
+						$result_array_cc[ "$row[0]" ][1] = $result_array[ "$i" ];
+					}
 				}
-				if ( ! isset($result_array_cc[ $row[0] ]) || $result_array_cc[ $row[0] ][1] < $result_array[ "$i" ] ) {
-					$result_array_cc[ "$row[0]" ][0] = $i;
-					$result_array_cc[ "$row[0]" ][1] = $result_array[ "$i" ];
-				}
+				$tot_calls += $row[1];
 			}
-			$tot_calls += $row[1];
 		}
+		catch (PDOException $e) {
+			print $e->getMessage();
+		}
+		$sth = NULL;
 	} else {
 		/* data fields */
 		$query3 = "SELECT unix_timestamp(calldate) AS ts, duration FROM $db_name.$db_table_name $where ORDER BY unix_timestamp(calldate) ASC LIMIT $result_limit";
-		$result3 = mysql_query($query3) or die("Query failed[ $query3 ]: " . mysql_error());
 		$group_by_str = '';
-		while ($row = mysql_fetch_array($result3, MYSQL_NUM)) {
-			$group_by_str_cur = substr(strftime($group_by_field_php[0],$row[0]),0,$group_by_field_php[1]) . $group_by_field_php[2];
-			if ( $group_by_str_cur != $group_by_str ) {
-				if ( $group_by_str ) {
-					for ( $i=$start_timestamp; $i<$row[0]; ++$i ) {
-						if ( ! isset($result_array_cc[ "$group_by_str" ]) || ( isset($result_array["$i"]) && $result_array_cc[ "$group_by_str" ][1] < $result_array["$i"] ) ) {
-							$result_array_cc[ "$group_by_str" ][0] = $i;
-							$result_array_cc[ "$group_by_str" ][1] = isset($result_array["$i"]) ? $result_array["$i"] : 0;
+		
+		try {
+			$sth = $dbh->query($query3);
+			if (!$sth) {
+				echo "\nPDO::errorInfo():\n";
+				print_r($dbh->errorInfo());
+			}
+			while ($row = $sth->fetch(PDO::FETCH_NUM)) {
+				$group_by_str_cur = substr(strftime($group_by_field_php[0],$row[0]),0,$group_by_field_php[1]) . $group_by_field_php[2];
+				if ( $group_by_str_cur != $group_by_str ) {
+					if ( $group_by_str ) {
+						for ( $i=$start_timestamp; $i<$row[0]; ++$i ) {
+							if ( ! isset($result_array_cc[ "$group_by_str" ]) || ( isset($result_array["$i"]) && $result_array_cc[ "$group_by_str" ][1] < $result_array["$i"] ) ) {
+								$result_array_cc[ "$group_by_str" ][0] = $i;
+								$result_array_cc[ "$group_by_str" ][1] = isset($result_array["$i"]) ? $result_array["$i"] : 0;
+							}
+							unset( $result_array[$i] );
 						}
-						unset( $result_array[$i] );
+						$start_timestamp = $row[0];
 					}
-					$start_timestamp = $row[0];
+					$group_by_str = $group_by_str_cur;
 				}
-				$group_by_str = $group_by_str_cur;
+				for ( $i=$row[0]; $i<=$row[0]+$row[1]; ++$i ) {
+					if ( isset($result_array["$i"]) ) {
+						++$result_array["$i"];
+					} else {
+						$result_array["$i"]=1;
+					}
+					if ( $max_calls < $result_array["$i"] ) {
+						$max_calls = $result_array["$i"];
+					}
+				}
+				$tot_calls++;
 			}
-			for ( $i=$row[0]; $i<=$row[0]+$row[1]; ++$i ) {
-				if ( isset($result_array["$i"]) ) {
-					++$result_array["$i"];
-				} else {
-					$result_array["$i"]=1;
-				}
-				if ( $max_calls < $result_array["$i"] ) {
-					$max_calls = $result_array["$i"];
-				}
-			}
-			$tot_calls++;
 		}
+		catch (PDOException $e) {
+			print $e->getMessage();
+		}
+		$sth = NULL;
 		for ( $i=$start_timestamp; $i<=$end_timestamp; ++$i ) {
 			$group_by_str = substr(strftime($group_by_field_php[0],$i),0,$group_by_field_php[1]) . $group_by_field_php[2];
 			if ( ! isset($result_array_cc[ "$group_by_str" ]) || ( isset($result_array["$i"]) && $result_array_cc[ "$group_by_str" ][1] < $result_array["$i"] ) ) {
@@ -519,12 +620,10 @@ if ( isset($_REQUEST['need_chart_cc']) && $_REQUEST['need_chart_cc'] == 'true' )
 
 		echo "</table>";
 	}
-	mysql_free_result($result3);
 }
 
 if ( isset($_REQUEST['need_minutes_report']) && $_REQUEST['need_minutes_report'] == 'true' ) {
 	$query2 = "SELECT $group_by_field AS group_by_field, count(*) AS total_calls, sum(duration), sum(billsec) AS total_duration FROM $db_name.$db_table_name $where GROUP BY group_by_field ORDER BY group_by_field ASC LIMIT $result_limit";
-	$result2 = mysql_query($query2) or die('Query failed: ' . mysql_error());
 
 	$tot_calls = 0;
 	$tot_duration = 0;
@@ -538,8 +637,13 @@ if ( isset($_REQUEST['need_minutes_report']) && $_REQUEST['need_minutes_report']
 			<th class="end_col">AVG Minutes</th>
 		</tr>';
 
-	while ($row = mysql_fetch_array($result2, MYSQL_NUM)) {
-			
+	try {
+		$sth = $dbh->query($query2);
+		if (!$sth) {
+			echo "\nPDO::errorInfo():\n";
+			print_r($dbh->errorInfo());
+		}
+		while ($row = $sth->fetch(PDO::FETCH_NUM)) {
 			$html_duration = sprintf('%02d', intval($row[3]/60)).':'.sprintf('%02d', intval($row[3]%60));
 			$html_duration_avg	= sprintf('%02d', intval(($row[3]/$row[1])/60)).':'.sprintf('%02d', intval(($row[3]/$row[1])%60));
 
@@ -549,7 +653,12 @@ if ( isset($_REQUEST['need_minutes_report']) && $_REQUEST['need_minutes_report']
 			
 			$tot_duration += $row[3];
 			$tot_calls += $row[1];
+		}
 	}
+	catch (PDOException $e) {
+		print $e->getMessage();
+	}
+	$sth = NULL;
 	
 	$html_duration = sprintf('%02d', intval($tot_duration/60)).':'.sprintf('%02d', intval($tot_duration%60));
 	$html_duration_avg = sprintf('%02d', intval(($tot_duration/$tot_calls)/60)).':'.sprintf('%02d', intval(($tot_duration/$tot_calls)%60));
@@ -558,12 +667,10 @@ if ( isset($_REQUEST['need_minutes_report']) && $_REQUEST['need_minutes_report']
 	echo "    <th class=\"chart_data\">Total</th><th class=\"chart_data\">$tot_calls</th><th class=\"chart_data\">$tot_duration</th><th class=\"chart_data\">$html_duration</th><th class=\"chart_data\">$html_duration_avg</th>\n";
 	echo "  </tr>\n";
 	echo "</table>";
-	mysql_free_result($result2);
 }
 
 if ( isset($_REQUEST['need_asr_report']) && $_REQUEST['need_asr_report'] == 'true' ) {
 	$query2 = "SELECT $group_by_field AS group_by_field, disposition, count(*) AS total_calls, sum(billsec) AS total_duration FROM $db_name.$db_table_name $where GROUP BY group_by_field,disposition ORDER BY group_by_field ASC LIMIT $result_limit";
-	$result2 = mysql_query($query2) or die('Query failed: ' . mysql_error());
 
 	$tot_calls = 0;
 	$tot_duration = 0;
@@ -587,7 +694,13 @@ if ( isset($_REQUEST['need_asr_report']) && $_REQUEST['need_asr_report'] == 'tru
 	$all_asr_total_calls = 0;
 	$all_asr_bill_secs = 0;
 	
-	while ($row = mysql_fetch_array($result2, MYSQL_NUM)) {
+	try {
+		$sth = $dbh->query($query2);
+		if (!$sth) {
+			echo "\nPDO::errorInfo():\n";
+			print_r($dbh->errorInfo());
+		}
+		while ($row = $sth->fetch(PDO::FETCH_NUM)) {
 			if ( $asr_cur_key != '' and $row[0] != $asr_cur_key ) {
 				echo "  <tr  class=\"record\">\n";
 				echo "    <td class=\"end_col\">$asr_cur_key</td></td><td class=\"chart_data\">",intval(($asr_answered_calls/$asr_total_calls)*100),"</td><td class=\"chart_data\">",intval($asr_bill_secs/($asr_answered_calls?$asr_answered_calls:1)),"<td class=\"chart_data\">$asr_total_calls</td><td class=\"chart_data\">$asr_answered_calls</td><td class=\"chart_data\">$asr_bill_secs</td>\n";
@@ -605,8 +718,13 @@ if ( isset($_REQUEST['need_asr_report']) && $_REQUEST['need_asr_report'] == 'tru
 				$all_asr_answered_calls += $row[2]; 
 			}
 			$asr_cur_key = $row[0];
-			
+		}
 	}
+	catch (PDOException $e) {
+		print $e->getMessage();
+	}
+	$sth = NULL;
+
 	if ( $asr_cur_key != '' ) {
 		echo "  <tr  class=\"record\">\n";
 		echo "    <td class=\"end_col\">$asr_cur_key</td></td><td class=\"chart_data\">",intval(($asr_answered_calls/$asr_total_calls)*100),"</td><td class=\"chart_data\">",intval($asr_bill_secs/($asr_answered_calls?$asr_answered_calls:1)),"<td class=\"chart_data\">$asr_total_calls</td><td class=\"chart_data\">$asr_answered_calls</td><td class=\"chart_data\">$asr_bill_secs</td>","\n";
@@ -618,7 +736,6 @@ if ( isset($_REQUEST['need_asr_report']) && $_REQUEST['need_asr_report'] == 'tru
 	echo "  </tr>\n";
 	echo "</table>";
 
-	mysql_free_result($result2);
 }
 
 /* run Plugins */
@@ -634,7 +751,7 @@ foreach ( $plugins as &$p_key ) {
 
 <?php
 
-mysql_close($dbconn);
+$dbh = NULL;
 
 include 'templates/footer.tpl.php';
 

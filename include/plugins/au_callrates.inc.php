@@ -1,7 +1,7 @@
 <?php
 
 function au_callrates() {
-	global $db_name, $db_table_name, $group_by_field, $where, $result_limit, $graph_col_title;
+	global $dbh, $db_name, $db_table_name, $group_by_field, $where, $result_limit, $graph_col_title;
 
 	/**************************** Config ****************************************************/
 	$au_call_rates = array(
@@ -16,7 +16,6 @@ function au_callrates() {
 	/****************************************************************************************/
 	$au_bill_tototal_q = "SELECT $group_by_field AS group_by_field FROM $db_name.$db_table_name $where GROUP BY group_by_field ORDER BY group_by_field ASC LIMIT $result_limit";
 	
-	$au_bill_tototal_r = mysql_query($au_bill_tototal_q) or die(mysql_error());
 
 	$au_callrates_total = array();
 	foreach ( array_keys($au_call_rates) as $key ) {
@@ -37,28 +36,51 @@ function au_callrates() {
 	
 	echo "<th>TOTAL<br/>(inc GST)</th></tr>";
 
-	while ($row = mysql_fetch_array($au_bill_tototal_r, MYSQL_NUM)) {
-		$summ = 0;
-		echo "<tr class=\"record\">";
-		echo "<td>". $row[0] ."</td>";
-		foreach ( array_keys($au_call_rates) as $key ) {
-			$au_bill_ch_q = "SELECT dst, billsec FROM $db_name.$db_table_name $where and $group_by_field = '". $row[0] ."' and " . $au_call_rates["$key"];
-			$au_bill_ch_r = mysql_query($au_bill_ch_q) or die(mysql_error());
-			$summ_local = 0;
-			while ($bill_row = mysql_fetch_array($au_bill_ch_r, MYSQL_NUM)) {
-				$rates = callrates( $bill_row[0], $bill_row[1], $au_callrates_csv_file );
-				$summ_local += $rates[4];
-			}
-			$au_call_rates_total["$key"] += $summ_local;
-			$summ += $summ_local;
-			formatMoney($summ_local);
+	try {
+		$sth = $dbh->query($au_bill_tototal_q);
+		if (!$sth) {
+			echo "\nPDO::errorInfo():\n";
+			print_r($dbh->errorInfo());
 		}
-		$au_call_rates_total["summ"] += $summ;
-		formatMoney($summ);
-		echo "</tr>";
 
+		$result = $sth->fetchAll(PDO::FETCH_NUM);
+
+		$sth = NULL;
+
+		foreach ( $result as $row ) {
+			$summ = 0;
+			echo "<tr class=\"record\">";
+			echo "<td>". $row[0] ."</td>";
+			foreach ( array_keys($au_call_rates) as $key ) {
+				$au_bill_ch_q = "SELECT dst, billsec FROM $db_name.$db_table_name $where and $group_by_field = '". $row[0] ."' and " . $au_call_rates["$key"];
+				$summ_local = 0;
+				
+				$sth2 = $dbh->query($au_bill_ch_q);
+				if (!$sth2) {
+					echo "\nPDO::errorInfo():\n";
+					print_r($dbh->errorInfo());
+				}
+				
+				while ($bill_row = $sth2->fetch(PDO::FETCH_NUM)) {
+					$rates = callrates( $bill_row[0], $bill_row[1], $au_callrates_csv_file );
+					$summ_local += $rates[4];
+				}
+				$sth2 = NULL;
+
+				$au_call_rates_total["$key"] += $summ_local;
+				$summ += $summ_local;
+				formatMoney($summ_local);
+			}
+			$au_call_rates_total["summ"] += $summ;
+			formatMoney($summ);
+			echo "</tr>";
+
+		}
 	}
-	
+	catch (PDOException $e) {
+		print $e->getMessage();
+	}
+
 	echo "<tr class=\"chart_data\">";
 	echo "<td>Total</td>";
 	foreach ( array_keys($au_call_rates_total) as $key ) {
