@@ -1,5 +1,6 @@
 <?php
 
+$db_type = 'mysql';
 $db_host = 'localhost';
 $db_port = '3306';
 $db_user = 'cdrasterisk';
