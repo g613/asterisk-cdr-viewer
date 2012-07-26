@@ -28,12 +28,6 @@ Recording interface
 		!!! if you use a different file format, see more examples in functions.inc.php ( function formatFiles) !!!
 
 
-CSV dump
-
-    * To enable the CSV dump run the following sql command:
-
-	          GRANT FILE ON *.* to 'cdrasterisk'@'localhost'; 
-
 Regular expressions
 
 	If an Source / Destination number is prefixed by a '_'
