@@ -208,7 +208,11 @@ if ( isset($_REQUEST['need_csv']) && $_REQUEST['need_csv'] == 'true' ) {
 			echo "\nPDO::errorInfo():\n";
 			print_r($dbh->errorInfo());
 		}
-		fwrite($handle,"calldate,clid,src,dst,dcontext,channel,dstchannel,lastapp,lastdata,duration,billsec,disposition,amaflags,accountcode,uniqueid,userfield\n");
+		if ( isset($_REQUEST['use_callrates']) && $_REQUEST['use_callrates'] == 'true' ) {
+			fwrite($handle,"calldate,clid,src,dst,dcontext,channel,dstchannel,lastapp,lastdata,duration,billsec,disposition,amaflags,accountcode,uniqueid,userfield,callrate,callrate_dst\n");
+		} else {
+			fwrite($handle,"calldate,clid,src,dst,dcontext,channel,dstchannel,lastapp,lastdata,duration,billsec,disposition,amaflags,accountcode,uniqueid,userfield\n");
+		}
 		while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 			$csv_line[0] 	= $row['calldate'];
 			$csv_line[1] 	= $row['clid'];
@@ -227,6 +231,11 @@ if ( isset($_REQUEST['need_csv']) && $_REQUEST['need_csv'] == 'true' ) {
 			$csv_line[14]	= $row['uniqueid'];
 			$csv_line[15]	= $row['userfield'];
 			$data = '';
+			if ( isset($_REQUEST['use_callrates']) && $_REQUEST['use_callrates'] == 'true' ) {
+				$rates = callrates($row['dst'],$row['billsec'],$callrate_csv_file);
+				$csv_line[16] = $rates[4];
+				$csv_line[17] = $rates[2];
+			}
 			for ($i = 0; $i < count($csv_line); $i++) {
 				/* If the string contains a comma, enclose it in double-quotes. */
 				if (strpos($csv_line[$i], ",") !== FALSE) {
