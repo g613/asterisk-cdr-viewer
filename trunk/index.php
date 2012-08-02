@@ -237,6 +237,7 @@ if ( isset($_REQUEST['need_csv']) && $_REQUEST['need_csv'] == 'true' ) {
 				$csv_line[17] = $rates[2];
 			}
 			for ($i = 0; $i < count($csv_line); $i++) {
+				$csv_line[$i] = str_replace( array( "\n", "\r" ), '', $csv_line[$i]);
 				/* If the string contains a comma, enclose it in double-quotes. */
 				if (strpos($csv_line[$i], ",") !== FALSE) {
 					$csv_line[$i] = "\"" . $csv_line[$i] . "\"";
