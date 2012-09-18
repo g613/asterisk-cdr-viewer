@@ -30,6 +30,28 @@ function formatFiles($row) {
 	*/
 	/* ============================================================================ */
 
+	/*      This example for multi-directory archive without uniqueid, named by format:
+			<date>/<time>_<caller>-<destination>.<filetype>
+
+			example: (tree /var/spool/asterisk/monitor)
+
+		|-- 2012.09.12
+		|   |-- 10-37_4952704601-763245.ogg
+		|   `-- 10-43_106-79236522173.ogg
+		`-- 2012.09.13
+			|-- 11-42_101-79016410692.ogg
+			|-- 12-43_104-671554.ogg
+			`-- 15-49_109-279710.ogg
+
+		Added by BAXMAH (pcm@ritm.omsk.ru)
+	*/
+	/*
+	   $record_datetime = DateTime::createFromFormat('Y-m-d G:i:s', $row['calldate']);
+
+	   $recorded_file = date_format($record_datetime, 'Y.m.d/G-i') .'_'. $row['src'] .'-'. $row['dst'];
+	*/
+	/* ============================================================================ */
+
 	/*
 		This is a multi-dir search script for filenames like "/var/spool/asterisk/monitor/dir1/dir2/dir3/*uniqueid*.*"
 		Doesn't matter, WAV, MP3 or other file format, only UNIQID  is  required at the end of the filename 
