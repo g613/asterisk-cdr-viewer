@@ -48,6 +48,7 @@ $rev_lookup_url = '';
 $display_column = array();
 $display_column['clid'] = 0;
 $display_column['accountcode'] = 1;
+$display_column['extension'] = 0;
 
 /* User name */
 $cdr_user_name = getenv('REMOTE_USER');

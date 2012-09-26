@@ -65,6 +65,12 @@ if ( is_blank($_REQUEST['dst']) ) {
 	$dst_number = asteriskregexp2sqllike( 'dst', '' );
 }
 
+if ( is_blank($_REQUEST['did']) ) {
+	$did_number = NULL;
+} else {
+	$did_number = asteriskregexp2sqllike( 'did', '' );
+}
+
 $date_range = "calldate BETWEEN $startdate AND $enddate";
 $mod_vars['channel'][] = is_blank($_REQUEST['channel']) ? NULL : $_REQUEST['channel'];
 $mod_vars['channel'][] = empty($_REQUEST['channel_mod']) ? NULL : $_REQUEST['channel_mod'];
@@ -81,6 +87,9 @@ $mod_vars['dstchannel'][] = empty($_REQUEST['dstchannel_neg']) ? NULL : $_REQUES
 $mod_vars['dst'][] = $dst_number;
 $mod_vars['dst'][] = empty($_REQUEST['dst_mod']) ? NULL : $_REQUEST['dst_mod'];
 $mod_vars['dst'][] = empty($_REQUEST['dst_neg']) ? NULL : $_REQUEST['dst_neg'];
+$mod_vars['did'][] = $did_number;
+$mod_vars['did'][] = empty($_REQUEST['did_mod']) ? NULL : $_REQUEST['did_mod'];
+$mod_vars['did'][] = empty($_REQUEST['did_neg']) ? NULL : $_REQUEST['did_neg'];
 $mod_vars['userfield'][] = is_blank($_REQUEST['userfield']) ? NULL : $_REQUEST['userfield'];
 $mod_vars['userfield'][] = empty($_REQUEST['userfield_mod']) ? NULL : $_REQUEST['userfield_mod'];
 $mod_vars['userfield'][] = empty($_REQUEST['userfield_neg']) ? NULL : $_REQUEST['userfield_neg'];
@@ -171,7 +180,7 @@ if ( $search_condition == '' ) {
 	}
 }
 
-$where = "$channel $src $clid $dstchannel $dst $userfield $accountcode $disposition";
+$where = "$channel $src $clid $did $dstchannel $dst $userfield $accountcode $disposition";
 
 $duration = (!isset($_REQUEST['dur_min']) || is_blank($_REQUEST['dur_max'])) ? NULL : "duration BETWEEN '$_REQUEST[dur_min]' AND '$_REQUEST[dur_max]'";
 
@@ -197,7 +206,7 @@ if ( isset($_REQUEST['need_csv']) && $_REQUEST['need_csv'] == 'true' ) {
 	$csv_file = md5(time() .'-'. $where ).'.csv';
 	if (! file_exists("$system_tmp_dir/$csv_file")) {
 		$handle = fopen("$system_tmp_dir/$csv_file", "w");
-		$query = "SELECT calldate, clid, src, dst, dcontext, channel, dstchannel, lastapp, lastdata, duration, billsec, disposition, amaflags, accountcode, uniqueid, userfield FROM $db_name.$db_table_name $where $order $sort LIMIT $result_limit";
+		$query = "SELECT * FROM $db_name.$db_table_name $where $order $sort LIMIT $result_limit";
 		try {
 			$sth = $dbh->query($query);
 		}
@@ -208,33 +217,37 @@ if ( isset($_REQUEST['need_csv']) && $_REQUEST['need_csv'] == 'true' ) {
 			echo "\nPDO::errorInfo():\n";
 			print_r($dbh->errorInfo());
 		}
+
+		fwrite($handle,"calldate,clid,src,did,dst,dcontext,channel,dstchannel,lastapp,lastdata,duration,billsec,disposition,amaflags,accountcode,uniqueid,userfield");
+		
 		if ( isset($_REQUEST['use_callrates']) && $_REQUEST['use_callrates'] == 'true' ) {
-			fwrite($handle,"calldate,clid,src,dst,dcontext,channel,dstchannel,lastapp,lastdata,duration,billsec,disposition,amaflags,accountcode,uniqueid,userfield,callrate,callrate_dst\n");
-		} else {
-			fwrite($handle,"calldate,clid,src,dst,dcontext,channel,dstchannel,lastapp,lastdata,duration,billsec,disposition,amaflags,accountcode,uniqueid,userfield\n");
+			fwrite($handle,",callrate,callrate_dst");
 		}
+		fwrite($handle,"\n");
+		
 		while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 			$csv_line[0] 	= $row['calldate'];
 			$csv_line[1] 	= $row['clid'];
 			$csv_line[2] 	= $row['src'];
-			$csv_line[3] 	= $row['dst'];
-			$csv_line[4] 	= $row['dcontext'];
-			$csv_line[5]	= $row['channel'];
-			$csv_line[6] 	= $row['dstchannel'];
-			$csv_line[7] 	= $row['lastapp'];
-			$csv_line[8]	= $row['lastdata'];
-			$csv_line[9]	= $row['duration'];
-			$csv_line[10]	= $row['billsec'];
-			$csv_line[11]	= $row['disposition'];
-			$csv_line[12]	= $row['amaflags'];
-			$csv_line[13]	= $row['accountcode'];
-			$csv_line[14]	= $row['uniqueid'];
-			$csv_line[15]	= $row['userfield'];
+			$csv_line[3] 	= $row['did'];
+			$csv_line[4] 	= $row['dst'];
+			$csv_line[5] 	= $row['dcontext'];
+			$csv_line[6]	= $row['channel'];
+			$csv_line[7] 	= $row['dstchannel'];
+			$csv_line[8] 	= $row['lastapp'];
+			$csv_line[9]	= $row['lastdata'];
+			$csv_line[10]	= $row['duration'];
+			$csv_line[11]	= $row['billsec'];
+			$csv_line[12]	= $row['disposition'];
+			$csv_line[13]	= $row['amaflags'];
+			$csv_line[14]	= $row['accountcode'];
+			$csv_line[15]	= $row['uniqueid'];
+			$csv_line[16]	= $row['userfield'];
 			$data = '';
 			if ( isset($_REQUEST['use_callrates']) && $_REQUEST['use_callrates'] == 'true' ) {
 				$rates = callrates($row['dst'],$row['billsec'],$callrate_csv_file);
-				$csv_line[16] = $rates[4];
-				$csv_line[17] = $rates[2];
+				$csv_line[17] = $rates[4];
+				$csv_line[18] = $rates[2];
 			}
 			for ($i = 0; $i < count($csv_line); $i++) {
 				$csv_line[$i] = str_replace( array( "\n", "\r" ), '', $csv_line[$i]);
@@ -272,7 +285,6 @@ if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
 		$tot_calls_raw = $sth->fetchColumn();
 		$sth = NULL;
 	}
-
 	if ( $tot_calls_raw ) {
 
 		if ( $tot_calls_raw > $result_limit ) {
@@ -285,7 +297,7 @@ if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
 
 		try {
 		
-		$query = "SELECT calldate, clid, src, dst, dcontext, channel, dstchannel, lastapp, lastdata, duration, billsec, disposition, amaflags, accountcode, uniqueid, userfield, unix_timestamp(calldate) as call_timestamp FROM $db_name.$db_table_name $where $order $sort LIMIT $result_limit";
+		$query = "SELECT *, unix_timestamp(calldate) as call_timestamp FROM $db_name.$db_table_name $where $order $sort LIMIT $result_limit";
 		$sth = $dbh->query($query);
 		if (!$sth) {
 			echo "\nPDO::errorInfo():\n";
@@ -298,15 +310,20 @@ if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
 				<tr>
 				<th class="record_col">Call Date</th>
 				<th class="record_col">File</th>
+				<th class="record_col">Source</th>
+				<th class="record_col">Destination</th>
+				<?php
+					if ( isset($display_column['extension']) and $display_column['extension'] == 1 ) {
+						echo '<th class="record_col">Extension</th>';
+					}
+				?>
+				<th class="record_col">Application</th>
 				<th class="record_col">Src Channel</th>
 				<?php
 					if ( isset($display_column['clid']) and $display_column['clid'] == 1 ) {
 						echo '<th class="record_col">CallerID</th>';
 					}
 				?>
-				<th class="record_col">Source</th>
-				<th class="record_col">Application</th>
-				<th class="record_col">Destination</th>
 				<th class="record_col">Dst Channel</th>
 				<th class="record_col">Disposition</th>
 				<th class="record_col">Duration</th>
@@ -330,13 +347,20 @@ if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
 			echo "  <tr class=\"record\">\n";
 			formatCallDate($row['calldate'],$row['uniqueid']);
 			formatFiles($row);
+			formatSrc($row['src'],$row['clid']);
+			if ( isset($row['did']) and strlen($row['did']) ) {
+				formatDst($row['did'], $row['dcontext'] . ' # ' . $row['dst'] );
+			} else {
+				formatDst($row['dst'], $row['dcontext'] );
+			}
+			if ( isset($display_column['extension']) and $display_column['extension'] == 1 ) {
+				formatDst($row['dst'], $row['dcontext'] );
+			}
+			formatApp($row['lastapp'], $row['lastdata']);
 			formatChannel($row['channel']);
 			if ( isset($display_column['clid']) and $display_column['clid'] == 1 ) {
 				formatClid($row['clid']);
 			}
-			formatSrc($row['src'],$row['clid']);
-			formatApp($row['lastapp'], $row['lastdata']);
-			formatDst($row['dst'], $row['dcontext']);
 			formatChannel($row['dstchannel']);
 			formatDisposition($row['disposition'], $row['amaflags']);
 			formatDuration($row['duration'], $row['billsec']);
@@ -394,7 +418,10 @@ switch ($group) {
 		$graph_col_title = 'Account Code';
 	break;
 	case "dst":
-		$graph_col_title = 'Destination Number';
+		$graph_col_title = 'Extension';
+	break;
+	case "did":
+		$graph_col_title = 'DID';
 	break;
 	case "src":
 		$graph_col_title = 'Source Number';
