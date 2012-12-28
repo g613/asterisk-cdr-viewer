@@ -6,7 +6,7 @@ Install:
 
 	cp asterisk-cdr-viewer/contrib/httpd/asterisk-cdr-viewer.conf /etc/httpd/conf.d/
 
-	service restart httpd
+	service httpd restart
 
 	change settings in /var/www/asterisk-cdr-viewer/include/config.inc.php
 

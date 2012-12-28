@@ -51,6 +51,12 @@ if (isset($_REQUEST['audio'])) {
 	header('Content-Length: '.filesize("/tmp/$_REQUEST[csv]"));
 	header("Content-Disposition: attachment; filename=\"$_REQUEST[csv]\"");
 	readfile("$system_tmp_dir/$_REQUEST[csv]");
+} elseif (isset($_REQUEST['arch'])) {
+	header('Content-Type: application/x-download');
+	header('Content-Transfer-Encoding: binary');
+	header('Content-Length: '.filesize("$system_monitor_dir/$_REQUEST[arch]"));
+	header("Content-Disposition: attachment; filename=\"$_REQUEST[arch]\"");
+	readfile("$system_monitor_dir/$_REQUEST[arch]");
 }
 
 exit();

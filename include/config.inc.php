@@ -7,6 +7,8 @@ $db_user = 'cdrasterisk';
 $db_pass = 'astcdr123';
 $db_name = 'cdrasterisk';
 $db_table_name = 'cdr';
+$db_options = array();
+/* $db_options = array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"); */
 
 /* Admin users. for multiple user access */
 /* $admin_user_names = 'iokunev,admin2,admin3'; */
@@ -29,6 +31,10 @@ $system_tmp_dir = '/tmp';
 
 /* audio file format */
 $system_audio_format = 'wav';
+/* arch audio format bz2 || gz, uncomment it if you pack files after some time */
+/* 
+$system_arch_audio_format = 'bz2';
+*/
 
 /* Plugins */
 $plugins = array( 'au_callrates' );

@@ -7,7 +7,7 @@ include 'templates/header.tpl.php';
 include 'templates/form.tpl.php';
 
 try {
-	$dbh = new PDO("$db_type:host=$db_host;port=$db_port;dbname=$db_name", $db_user, $db_pass);
+	$dbh = new PDO("$db_type:host=$db_host;port=$db_port;dbname=$db_name", $db_user, $db_pass, $db_options);
 }
 catch (PDOException $e) {
 	echo "\nPDO::errorInfo():\n";
@@ -185,14 +185,14 @@ $where = "$channel $src $clid $did $dstchannel $dst $userfield $accountcode $dis
 $duration = (!isset($_REQUEST['dur_min']) || is_blank($_REQUEST['dur_max'])) ? NULL : "duration BETWEEN '$_REQUEST[dur_min]' AND '$_REQUEST[dur_max]'";
 
 if ( strlen($duration) > 0 ) {
-	if ( strlen($where) > 7 ) {
+	if ( strlen($where) > 8 ) {
 		$where = "$where $search_condition $duration";
 	} else {
 		$where = "$where $duration";
 	}
 }
 
-if ( strlen($where) > 8 ) {
+if ( strlen($where) > 9 ) {
 	$where = "WHERE $date_range AND ( $where ) $cdr_user_name";
 } else {
 	$where = "WHERE $date_range $cdr_user_name";
