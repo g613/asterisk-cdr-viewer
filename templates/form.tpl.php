@@ -117,12 +117,6 @@ if (isset($_REQUEST['limit']) ) {
 } ?>" name="limit" size="6" />
 </td>
 </tr>
-<tr>
-<td colspan='2' align='center'>
-	<br>
-	<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=XVUVZY5D922JJ&lc=RU&item_name=i%2eo%2e&item_number=asterisk%2dcdr&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted"><img src="https://www.paypal.com/en_US/i/btn/btn_donateCC_LG.gif" align="center"/></a>
-</td>
-</tr>
 </table>
 </fieldset>
 </td>
