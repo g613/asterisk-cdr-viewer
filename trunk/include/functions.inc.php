@@ -2,7 +2,7 @@
 
 /* Recorded file */
 function formatFiles($row) {
-	global $system_monitor_dir, $system_fax_archive_dir, $system_audio_format;
+	global $system_monitor_dir, $system_fax_archive_dir, $system_audio_format, $system_arch_audio_format;
 
 	/* File name formats, please specify: */
 	
@@ -132,6 +132,8 @@ function formatFiles($row) {
 
 	if (file_exists("$system_monitor_dir/$recorded_file.$system_audio_format")) {
 		echo "    <td class=\"record_col\"><a href=\"download.php?audio=$recorded_file.$system_audio_format\" title=\"Listen to call recording\"><img src=\"/icons/small/sound.png\" alt=\"Call recording\" /></a></td>\n";
+	} elseif ( isset($system_arch_audio_format) and file_exists("$system_monitor_dir/$recorded_file.$system_audio_format.$system_arch_audio_format")) {
+		echo "    <td class=\"record_col\"><a href=\"download.php?arch=$recorded_file.$system_audio_format.$system_arch_audio_format\" title=\"Download archive\"><img src=\"/icons/small/compressed.png\" alt=\"Call recording\" /></a></td>\n";
 	} elseif (file_exists("$system_fax_archive_dir/$recorded_file.tif")) {
 		echo "    <td class=\"record_col\"><a href=\"download.php?fax=$recorded_file.tif\" title=\"View FAX image\"><img src=\"/icons/small/text.png\" alt=\"FAX image\" /></a></td>\n";
 	} elseif (file_exists("$system_monitor_dir/$recorded_file")) {

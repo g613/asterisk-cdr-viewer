@@ -70,7 +70,7 @@ for ( $i = 2000; $i <= date('Y'); $i++) {
 :
 <input type="text" name="endmin" id="endmin" size="2" maxlength="2" value="<?php if (isset($_REQUEST['endmin'])) { echo htmlspecialchars($_REQUEST['endmin']); } else { echo '59'; } ?>" />
 </td>
-<td rowspan="10" valign='top' align='right'>
+<td rowspan="13" valign='top' align='right'>
 <fieldset>
 <legend class="title">Extra options</legend>
 <table>
@@ -115,6 +115,12 @@ if (isset($_REQUEST['limit']) ) {
 } else {
 	echo $db_result_limit;
 } ?>" name="limit" size="6" />
+</td>
+</tr>
+<tr>
+<td colspan='2' align='center'>
+	<br>
+	<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=XVUVZY5D922JJ&lc=RU&item_name=i%2eo%2e&item_number=asterisk%2dcdr&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted"><img src="https://www.paypal.com/en_US/i/btn/btn_donateCC_LG.gif" align="center"/></a>
 </td>
 </tr>
 </table>
