@@ -120,7 +120,7 @@ _if you use a different file format, see more examples in [http://code.google.co
 
 ===Postgres===
 
-to use this software with postgres DB, add follow function to your DB:
+to use this software with postgres DB, add follow function to DB:
 {{{
 CREATE FUNCTION unix_timestamp(TIMESTAMP) RETURNS INTEGER AS '
 SELECT date_part(''epoch'', $1)::INTEGER AS RESULT
