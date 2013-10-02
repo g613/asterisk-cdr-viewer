@@ -118,3 +118,12 @@ Plugins support
    * Add plugin name to include/config.inc.php, to $plugins() variable
 
    * Please see au_callrates.inc.php plugin for more details.
+
+Postgres
+
+to use this software with postgres DB, add follow function to DB:
+
+CREATE FUNCTION unix_timestamp(TIMESTAMP) RETURNS INTEGER AS '
+SELECT date_part(''epoch'', $1)::INTEGER AS RESULT
+' LANGUAGE sql;
+CREATE FUNCTION

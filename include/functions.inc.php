@@ -149,8 +149,8 @@ function formatCallDate($calldate,$uniqueid) {
 }
 
 function formatChannel($channel) {
-	$chan_type = explode('/', $channel, 2);
-	echo "    <td class=\"record_col\"><abbr title=\"Channel: $channel\">$chan_type[0]</abbr></td>\n";
+	$trunk_name = preg_replace('/(.*)-[^-]+$/','$1',$channel);
+	echo "    <td class=\"record_col\"><abbr title=\"Channel: $channel\">$trunk_name</abbr></td>\n";
 }
 
 function formatClid($clid) {
