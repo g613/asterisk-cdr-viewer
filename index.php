@@ -25,7 +25,7 @@ $startyear = is_blank($_REQUEST['startyear']) ? date('Y') : $_REQUEST['startyear
 
 if (is_blank($_REQUEST['startday'])) {
 	$startday = '01';
-} elseif (isset($_REQUEST['startday']) && ($_REQUEST['startday'] > date('t', strtotime("$startyear-$startmonth")))) {
+} elseif (isset($_REQUEST['startday']) && ($_REQUEST['startday'] > date('t', strtotime("$startyear-$startmonth-01")))) {
 	$startday = $_REQUEST['startday'] = date('t', strtotime("$startyear-$startmonth"));
 } else {
 	$startday = sprintf('%02d',$_REQUEST['startday']);
@@ -207,6 +207,9 @@ if ( isset($_REQUEST['need_csv']) && $_REQUEST['need_csv'] == 'true' ) {
 	if (! file_exists("$system_tmp_dir/$csv_file")) {
 		$handle = fopen("$system_tmp_dir/$csv_file", "w");
 		$query = "SELECT * FROM $db_name.$db_table_name $where $order $sort LIMIT $result_limit";
+	
+		echo "\n<!--SQL - need_csv: $query-->\n";
+
 		try {
 			$sth = $dbh->query($query);
 		}
@@ -272,6 +275,9 @@ if ( isset($_REQUEST['need_csv']) && $_REQUEST['need_csv'] == 'true' ) {
 
 if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
 	$query = "SELECT count(*) FROM $db_name.$db_table_name $where LIMIT $result_limit";
+
+	echo "\n<!--SQL - need_html / count : $query-->\n";
+
 	try {
 		$sth = $dbh->query($query);
 	}
@@ -295,9 +301,11 @@ if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
 
 		$i = $h_step - 1;
 
+		$query = "SELECT *, unix_timestamp(calldate) as call_timestamp FROM $db_name.$db_table_name $where $order $sort LIMIT $result_limit";
+		echo "\n<!--SQL - need_html / raw : $query-->\n";
+
 		try {
 		
-		$query = "SELECT *, unix_timestamp(calldate) as call_timestamp FROM $db_name.$db_table_name $where $order $sort LIMIT $result_limit";
 		$sth = $dbh->query($query);
 		if (!$sth) {
 			echo "\nPDO::errorInfo():\n";
@@ -476,6 +484,8 @@ switch ($group) {
 
 if ( isset($_REQUEST['need_chart']) && $_REQUEST['need_chart'] == 'true' ) {
 	$query2 = "SELECT $group_by_field AS group_by_field, count(*) AS total_calls, sum(duration) AS total_duration FROM $db_name.$db_table_name $where GROUP BY group_by_field ORDER BY group_by_field ASC LIMIT $result_limit";
+	
+	echo "\n<!--SQL - need_chart : $query2-->\n";
 
 	$tot_calls = 0;
 	$tot_duration = 0;
@@ -552,6 +562,8 @@ if ( isset($_REQUEST['need_chart_cc']) && $_REQUEST['need_chart_cc'] == 'true' )
 		/* not date time fields */
 		$query3 = "SELECT $group_by_field AS group_by_field, count(*) AS total_calls, unix_timestamp(calldate) AS ts, duration FROM $db_name.$db_table_name $where GROUP BY group_by_field, unix_timestamp(calldate) ORDER BY group_by_field ASC LIMIT $result_limit";
 
+		echo "\n<!--SQL - need_chart_cc / wo date : $query3-->\n";
+
 		try {
 			$sth = $dbh->query($query3);
 			if (!$sth) {
@@ -588,6 +600,9 @@ if ( isset($_REQUEST['need_chart_cc']) && $_REQUEST['need_chart_cc'] == 'true' )
 	} else {
 		/* data fields */
 		$query3 = "SELECT unix_timestamp(calldate) AS ts, duration FROM $db_name.$db_table_name $where ORDER BY unix_timestamp(calldate) ASC LIMIT $result_limit";
+	
+		echo "\n<!--SQL - need_chart_cc : $query3-->\n";
+
 		$group_by_str = '';
 		
 		try {
@@ -662,6 +677,8 @@ if ( isset($_REQUEST['need_chart_cc']) && $_REQUEST['need_chart_cc'] == 'true' )
 if ( isset($_REQUEST['need_minutes_report']) && $_REQUEST['need_minutes_report'] == 'true' ) {
 	$query2 = "SELECT $group_by_field AS group_by_field, count(*) AS total_calls, sum(duration), sum(billsec) AS total_duration FROM $db_name.$db_table_name $where GROUP BY group_by_field ORDER BY group_by_field ASC LIMIT $result_limit";
 
+	echo "\n<!--SQL - need_minutes_report : $query2-->\n";
+
 	$tot_calls = 0;
 	$tot_duration = 0;
 
@@ -708,6 +725,8 @@ if ( isset($_REQUEST['need_minutes_report']) && $_REQUEST['need_minutes_report']
 
 if ( isset($_REQUEST['need_asr_report']) && $_REQUEST['need_asr_report'] == 'true' ) {
 	$query2 = "SELECT $group_by_field AS group_by_field, disposition, count(*) AS total_calls, sum(billsec) AS total_duration FROM $db_name.$db_table_name $where GROUP BY group_by_field,disposition ORDER BY group_by_field ASC LIMIT $result_limit";
+
+	echo "\n<!--SQL - need_asr_report : $query2-->\n";
 
 	$tot_calls = 0;
 	$tot_duration = 0;
