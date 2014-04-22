@@ -192,6 +192,16 @@ if ( strlen($duration) > 0 ) {
 	}
 }
 
+$billsec = (!isset($_REQUEST['bill_min']) || is_blank($_REQUEST['bill_max'])) ? NULL : "billsec BETWEEN '$_REQUEST[bill_min]' AND '$_REQUEST[bill_max]'";
+
+if ( strlen($billsec) > 0 ) {
+	if ( strlen($where) > 8 ) {
+		$where = "$where $search_condition $billsec";
+	} else {
+		$where = "$where $billsec";
+	}
+}
+
 if ( strlen($where) > 9 ) {
 	$where = "WHERE $date_range AND ( $where ) $cdr_user_name";
 } else {
@@ -335,6 +345,11 @@ if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
 				<th class="record_col">Dst Channel</th>
 				<th class="record_col">Disposition</th>
 				<th class="record_col">Duration</th>
+				<?php
+					if ( isset($display_column['billsec']) and $display_column['billsec'] == 1 ) {
+						echo '<th class="record_col">BillSec</th>';
+					}
+				?>
 				<th class="record_col">Userfield</th>
 				<?php
 					if ( isset($display_column['accountcode']) and $display_column['accountcode'] == 1 ) {
@@ -372,6 +387,10 @@ if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
 			formatChannel($row['dstchannel']);
 			formatDisposition($row['disposition'], $row['amaflags']);
 			formatDuration($row['duration'], $row['billsec']);
+			if ( isset($display_column['billsec']) and $display_column['billsec'] == 1 ) {
+				formatBillSec($row['billsec']);
+			};
+		
 			formatUserField($row['userfield']);
 			if ( isset($display_column['accountcode']) and $display_column['accountcode'] == 1 ) {
 				formatAccountCode($row['accountcode']);

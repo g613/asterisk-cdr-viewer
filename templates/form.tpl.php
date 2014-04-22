@@ -210,6 +210,22 @@ And:
 Seconds
 </td>
 </tr>
+
+<?php 
+if ( isset($display_column['billsec']) and $display_column['billsec'] == 1 ) {
+?>
+<tr>
+<td><input <?php if (isset($_REQUEST['order']) && $_REQUEST['order'] == 'billsec') { echo 'checked="checked"'; } ?> type="radio" name="order" value="billsec" />&nbsp;<label>BillSeconds:</label></td>
+<td>Between:
+<input type="text" name="bill_min" value="<?php if (isset($_REQUEST['bill_min'])) { echo htmlspecialchars($_REQUEST['bill_min']); } ?>" size="3" maxlength="5" />
+And:
+<input type="text" name="bill_max" value="<?php if (isset($_REQUEST['bill_max'])) { echo htmlspecialchars($_REQUEST['bill_max']); } ?>" size="3" maxlength="5" />
+Seconds
+</td>
+</tr>
+<?php
+};?>
+
 <tr>
 <td><input <?php if (isset($_REQUEST['order']) && $_REQUEST['order'] == 'disposition') { echo 'checked="checked"'; } ?> type="radio" name="order" value="disposition" />&nbsp;<label for="disposition">Disposition:</label></td>
 <td nowrap=""nowrap>

@@ -207,6 +207,11 @@ function formatDuration($duration, $billsec) {
 	echo "    <td class=\"record_col\"><abbr title=\"Billing Duration: $billduration\">$duration</abbr></td>\n";
 }
 
+function formatBillSec($billsec) {
+	$sec = sprintf('%02d', intval($billsec/60)).':'.sprintf('%02d', intval($billsec%60));
+	echo "    <td class=\"record_col\">$sec</td>\n";
+}
+
 function formatUserField($userfield) {
 	echo "    <td class=\"record_col\">$userfield</td>\n";
 }
