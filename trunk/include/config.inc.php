@@ -55,6 +55,7 @@ $display_column = array();
 $display_column['clid'] = 0;
 $display_column['accountcode'] = 1;
 $display_column['extension'] = 0;
+$display_column['billsec'] = 1;
 
 /* User name */
 $cdr_user_name = getenv('REMOTE_USER');
