@@ -14,7 +14,7 @@ function au_callrates() {
 	$au_callrates_csv_file = '/var/www/asterisk-cdr-viewer/include/plugins/au_callrates.csv';
 
 	/****************************************************************************************/
-	$au_bill_tototal_q = "SELECT $group_by_field AS group_by_field FROM $db_name.$db_table_name $where GROUP BY group_by_field ORDER BY group_by_field ASC LIMIT $result_limit";
+	$au_bill_tototal_q = "SELECT $group_by_field AS group_by_field FROM $db_table_name $where GROUP BY group_by_field ORDER BY group_by_field ASC LIMIT $result_limit";
 	
 
 	$au_callrates_total = array();
@@ -52,7 +52,7 @@ function au_callrates() {
 			echo "<tr class=\"record\">";
 			echo "<td>". $row[0] ."</td>";
 			foreach ( array_keys($au_call_rates) as $key ) {
-				$au_bill_ch_q = "SELECT dst, billsec FROM $db_name.$db_table_name $where and $group_by_field = '". $row[0] ."' and " . $au_call_rates["$key"];
+				$au_bill_ch_q = "SELECT dst, billsec FROM $db_table_name $where and $group_by_field = '". $row[0] ."' and " . $au_call_rates["$key"];
 				$summ_local = 0;
 				
 				$sth2 = $dbh->query($au_bill_ch_q);
