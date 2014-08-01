@@ -314,6 +314,8 @@ if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
 		$query = "SELECT *, unix_timestamp(calldate) as call_timestamp FROM $db_table_name $where $order $sort LIMIT $result_limit";
 		echo "\n<!--SQL - need_html / raw : $query-->\n";
 
+		$total_rows = 0;
+
 		try {
 		
 		$sth = $dbh->query($query);
@@ -331,8 +333,10 @@ if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
 				<th class="record_col">Source</th>
 				<th class="record_col">Destination</th>
 				<?php
+					$total_rows = 10;
 					if ( isset($display_column['extension']) and $display_column['extension'] == 1 ) {
 						echo '<th class="record_col">Extension</th>';
+						$total_rows++;
 					}
 				?>
 				<th class="record_col">Application</th>
@@ -340,6 +344,7 @@ if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
 				<?php
 					if ( isset($display_column['clid']) and $display_column['clid'] == 1 ) {
 						echo '<th class="record_col">CallerID</th>';
+						$total_rows++;
 					}
 				?>
 				<th class="record_col">Dst Channel</th>
@@ -348,17 +353,20 @@ if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
 				<?php
 					if ( isset($display_column['billsec']) and $display_column['billsec'] == 1 ) {
 						echo '<th class="record_col">BillSec</th>';
+						$total_rows++;
 					}
 				?>
 				<th class="record_col">Userfield</th>
 				<?php
 					if ( isset($display_column['accountcode']) and $display_column['accountcode'] == 1 ) {
 						echo '<th class="record_col">Account</th>';
+						$total_rows++;
 					}
 				?>
 				<?php
 				if ( isset($_REQUEST['use_callrates']) && $_REQUEST['use_callrates'] == 'true' ) {
 					echo '<th class="record_col">CallRate</th><th class="record_col">CallRate Dst</th>';
+					$rate_total = 0;
 				}
 				?>
 				<th class="img_col"><a href="#CDR" title="Go to the top of the CDR table"><img src="/icons/small/back.png" alt="CDR Table" /></a></th>
@@ -397,6 +405,7 @@ if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
 			}
 			if ( isset($_REQUEST['use_callrates']) && $_REQUEST['use_callrates'] == 'true' ) {
 				$rates = callrates($row['dst'],$row['billsec'],$callrate_csv_file);
+				$rate_total += $rates[4];
 				formatMoney($rates[4]);
 				echo "<td>". htmlspecialchars($rates[2]) ."</td>\n";
 			}
@@ -407,6 +416,11 @@ if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
 		}
 		catch (PDOException $e) {
 			print $e->getMessage();
+		}
+		if ( isset($_REQUEST['use_callrates']) && $_REQUEST['use_callrates'] == 'true' ) {
+			echo "<tr><td colspan='$total_rows' align='right'>Total:&nbsp;&nbsp;</td>";
+			formatMoney($rate_total);
+			echo "</b></td></tr>\n";
 		}
 		echo "</table>";
 		$sth = NULL;
