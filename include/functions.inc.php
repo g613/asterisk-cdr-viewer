@@ -318,6 +318,24 @@ function callrates($dst,$duration,$file) {
 				} else {
 					$call_rate = $callrate_cache[$file][substr($dst,0,$i)][0] + ( ($duration-60) * ($callrate_cache[$file][substr($dst,0,$i)][0] / 60) );
 				}
+			} elseif ( $callrate_cache[$file][substr($dst,0,$i)][2] == '30s+s' ) {
+				// Thanks to `celosam` 
+				// 30 second + per second
+				if ( $duration > 0 && $duration <= 30) {
+					$call_rate = ($callrate_cache[$file][substr($dst,0,$i)][0] / 2);
+				} elseif ( $duration > 30 && $duration < 60) {
+					$call_rate = ($callrate_cache[$file][substr($dst,0,$i)][0] / 2) + ( ($duration-30) * ($callrate_cache[$file][substr($dst,0,$i)][0] / 60) );
+				} else {
+					$call_rate = $callrate_cache[$file][substr($dst,0,$i)][0] + ( ($duration-60) * ($callrate_cache[$file][substr($dst,0,$i)][0] / 60) );
+				}
+			} elseif ( $callrate_cache[$file][substr($dst,0,$i)][2] == '30s+6s' ) {
+				// Thanks to `celosam` 
+				// 30 second + 6 second
+				if ( $duration > 0 && $duration <= 30) {
+					$call_rate = ($callrate_cache[$file][substr($dst,0,$i)][0] / 2);
+				} else {
+					$call_rate = ceil($duration / 6) * ($callrate_cache[$file][substr($dst,0,$i)][0] / 10);
+				}
 			} else {
 				//( $callrate_cache[substr($dst,0,$i)][2] == 'm' ) {
 				// per minute
