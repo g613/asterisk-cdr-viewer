@@ -102,10 +102,12 @@ CallRates Support
 		011,0.12,Intr,m
 
 	supported rate_type:
-	    * s    - per second tarification
-		* c    - per call tarification
-		* m    - per minute tarification ( default )
-		* 1m+s - combi
+	    * s      - per second tarification
+		* c      - per call tarification
+		* m      - per minute tarification ( default )
+		* 1m+s   - combi
+		* 30s+s  - combi 2
+		* 30s+6s - combi 3
 
 Plugins support
 
