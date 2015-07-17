@@ -198,7 +198,11 @@ function formatDisposition($disposition, $amaflags) {
 		default:
 			$amaflags = 'DEFAULT';
 	}
-	echo "    <td class=\"record_col\"><abbr title=\"AMA Flag: $amaflags\">$disposition</abbr></td>\n";
+	if ( $disposition == 'ANSWERED' ) {
+		echo "    <td class=\"record_col\"><abbr title=\"AMA Flag: $amaflags\"><span class='green'>$disposition</span></abbr></td>\n";
+	} else {
+		echo "    <td class=\"record_col\"><abbr title=\"AMA Flag: $amaflags\"><span class='red'>$disposition</span></abbr></td>\n";
+	}
 }
 
 function formatDuration($duration, $billsec) {

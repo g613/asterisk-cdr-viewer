@@ -3,30 +3,48 @@ a {
 	cursor : pointer;
 }
 
-
 abbr[title] {
-	border-style : none none dashed;
-	border-width : medium medium 1px;
-	border-bottom-color : #000000;
-	cursor : help;
-	 white-space : nowrap;
+    border-style : none none dashed;
+    border-width : medium medium 1px;
+    border-bottom-color : #000000;
+    cursor : help;
+     white-space : nowrap;
 }
 
-
 body {
-	background-color : #fff;
 	/* Fix for M$ IE < 7 CSS hover */ behavior : url('style/csshover.htc');
 	color : #000;
-	font : 65% Verdana, Arial, Helvetica, sans-serif;
+	font-family:Time New Roman;
 	margin : 0;
 	padding : 0;
 }
-
 
 img {
 	border-width : 0;
 }
 
+input, select {
+	border-radius: 3px;
+	border: 1px solid #BBB7B7;
+}
+
+input[type=submit] {
+    background: #5ebeff;
+    padding:8px 18px 8px 18px;
+    border-radius:5px;
+    -moz-border-radius:5px;
+    color:#ffffff;
+    font-weight:bold;
+    text-decoration:none;
+    margin:10px 10px 0 0;
+    border:none;
+    outline:0;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+input[type=submit]:hover {background:#7edeff;}
+input[type=submit]:active {background:#2222aa;}
 
 /* ID styles */
 #header {
@@ -57,7 +75,6 @@ img {
 
 #header_subtitle {
 	color: #68878a;
-	font-family: Verdana,Arial,'Bitstream Vera Sans',Helvetica,sans-serif;
 	font-size: 12pt;
 	font-weight: bold;
 	height: 60px;
@@ -79,24 +96,23 @@ img {
 
 /* Class styles */
 .bar_calls {
-	background-color : #aaf5d0;
-	float : none;
-	padding : 0 0 0 2px;
+    background-color : #aaf5d0;
+    float : none;
+    padding : 0 0 0 2px;
 }
 
 
 .bar_duration {
-	background-color : #e5edf9;
-	float : none;
-	padding : 0 0 0 2px;
+    background-color : #e5edf9;
+    float : none;
+    padding : 0 0 0 2px;
 }
 
-
 .cdr {
-	margin : 0 2%;
-	border-width : 0;
-	white-space : nowrap;
-	width : 96%;
+	margin:0 auto;
+	border-width:0;
+	width: 96%;
+	font-size: 0.9em;
 }
 
 
@@ -105,6 +121,7 @@ img {
 	border-color : #000;
 	border-width : 2px;
 	text-align : center;
+	padding: 4px 4px 3px;
 }
 
 
@@ -130,8 +147,8 @@ img {
 	height : 16px;
 }
 
-
 .form legend, .title, .title a {
+	background-color:#ffffcc
 	color: #777;
 	font-size: 2em;
 	font-weight: bold;
@@ -152,8 +169,7 @@ img {
 
 
 .record_col {
-	padding-left : 2px;
-	padding-right : 2px;
+	padding: 4px 4px 5px;
 	border-width : 0;
 }
 
@@ -166,4 +182,12 @@ img {
 	padding-right : 80px;
 	text-align : right;
 	font-size: 9pt;
+}
+
+span.green {
+	color:green;
+}
+
+span.red {
+	color:red;
 }
