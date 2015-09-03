@@ -69,6 +69,21 @@ for ( $i = 2000; $i <= date('Y'); $i++) {
 <input type="text" name="endhour" id="endhour" size="2" maxlength="2" value="<?php if (isset($_REQUEST['endhour'])) { echo htmlspecialchars($_REQUEST['endhour']); } else { echo '23'; } ?>" />
 :
 <input type="text" name="endmin" id="endmin" size="2" maxlength="2" value="<?php if (isset($_REQUEST['endmin'])) { echo htmlspecialchars($_REQUEST['endmin']); } else { echo '59'; } ?>" />
+&nbsp;
+&nbsp;
+&nbsp;
+<select name='ranges' onchange="NewDate(this.value);">
+	<option value=''>Shorcuts</option>
+	<option value='td'>Today</option>
+	<option value='pd'>Yesterday</option>
+	<option value='3d'>Last 3 days</option>
+	<option value='tw'>This week</option>
+	<option value='pw'>Previous week</option>
+	<option value='3w'>Last 3 weeks</option>
+	<option value='tm'>This month</option>
+	<option value='pm'>Previous month</option>
+	<option value='3m'>Last 3 months</option>
+</select>
 </td>
 <td rowspan="13" valign='top' align='right'>
 <fieldset>
