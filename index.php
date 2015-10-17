@@ -20,7 +20,7 @@ foreach ( array_keys($_REQUEST) as $key ) {
 	$_REQUEST[$key] = substr($dbh->quote($_REQUEST[$key]),1,-1);
 }
 
-$startmonth = is_blank($_REQUEST['startmonth']) ? date('m') : printf('%02d',_REQUEST['startmonth']);
+$startmonth = is_blank($_REQUEST['startmonth']) ? date('m') : sprintf('%02d',$_REQUEST['startmonth']);
 $startyear = is_blank($_REQUEST['startyear']) ? date('Y') : $_REQUEST['startyear'];
 
 if (is_blank($_REQUEST['startday'])) {
