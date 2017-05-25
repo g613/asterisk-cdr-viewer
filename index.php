@@ -100,8 +100,8 @@ $result_limit = is_blank($_REQUEST['limit']) ? $db_result_limit : intval($_REQUE
 
 if ( strlen($cdr_user_name) > 0 ) {
 	$cdr_user_name = asteriskregexp2sqllike( 'cdr_user_name', substr($dbh->quote($cdr_user_name),1,-1) );
-	if ( isset($mod_vars['cdr_user_name']) and $mod_vars['cdr_user_name'][2] == 'asterisk-regexp' ) {
-		$cdr_user_name = " AND ( dst RLIKE '$cdr_user_name' or src RLIKE '$cdr_user_name' )";
+	if ( $_REQUEST['cdr_user_name_mod'] == 'asterisk-regexp' ) {
+		$cdr_user_name = " AND ( dst RLIKE '^$cdr_user_name\$' or src RLIKE '^$cdr_user_name\$' )";
 	} else {
 		$cdr_user_name = " AND ( dst = '$cdr_user_name' or src = '$cdr_user_name' )";
 	}
