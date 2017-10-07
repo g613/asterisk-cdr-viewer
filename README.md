@@ -1,4 +1,4 @@
-Simple and fast viewer for asterisk CDRs / recordings.
+Simple and fast viewer for asterisk CDRs / recordings. ( 1.0.14, Oct 7 2017 )
 
     Asterisk regexp support ( like _XNZ. ) for source / destination / DID numbers. 
 
