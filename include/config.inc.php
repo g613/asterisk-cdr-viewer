@@ -10,6 +10,9 @@ $db_table_name = 'cdr';
 $db_options = array();
 /* $db_options = array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"); */
 
+/* auth require, set to 0 if cdr-viewer shall to work without Basic-auth */
+$system_auth_require = 1;
+
 /* Admin users. for multiple user access */
 /* $admin_user_names = 'iokunev,admin2,admin3'; */
 $admin_user_names = '*';
@@ -70,6 +73,12 @@ if ( strlen($cdr_user_name) > 0 ) {
 		exit;
 	} elseif ( $is_admin !== false ) {
 		$cdr_user_name = '';
+	}
+}
+
+if ( $system_auth_require ) {
+	if ( $_SERVER['AUTH_TYPE'] != 'Basic' ) {
+		die("HTTP Auth required, please configure WEB server !");
 	}
 }
 
