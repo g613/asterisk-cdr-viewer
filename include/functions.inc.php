@@ -75,6 +75,17 @@ function formatFiles($row) {
 	*/
 	
 	/*
+	//
+	// Set $cdr_suppress_download_links = 1 in config.inc.php if you don't want to find files, because 
+	// of some performance issue with this method. To show file you shall to select checkbox in GUI.
+	//
+	if ( isset($cdr_suppress_download_links) and $cdr_suppress_download_links ) {
+		if ( empty($_REQUEST['show_download_links']) || $_REQUEST['show_download_links'] != 'true' ) {
+			echo "<td>&nbsp;</td>\n";
+			return;
+		}
+	}
+
 	//************ Get a list of subdirectories as array to search by glob function  **************
 	if (!function_exists('get_dir_list')) {
 		function get_dir_list($dir){

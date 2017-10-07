@@ -48,6 +48,9 @@ $callrate_csv_file = '';
 $callrate_currency = '$';
 $callrate_cache = array();
 
+/* Suppress download links */
+$cdr_suppress_download_links = 0;
+
 /* Reverse lookup URL where "%n" is replace with the destination number */
 /* $rev_lookup_url = 'http://www.whitepages.com/search/ReversePhone?full_phone=%n'; */
 /* $rev_lookup_url = 'http://mrnumber.com/%n'; */

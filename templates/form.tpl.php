@@ -99,6 +99,11 @@ if ( strlen($callrate_csv_file) > 0 ) {
 	if ( ! empty($_REQUEST['use_callrates']) &&  $_REQUEST['use_callrates'] == 'true' ) { echo 'checked="checked"'; }
 	echo ' /> with call rates<br/>';
 } 
+if ( isset($cdr_suppress_download_links) and $cdr_suppress_download_links ) {
+	echo '&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" name="show_download_file" value="true"';
+	if ( ! empty($_REQUEST['show_download_links']) &&  $_REQUEST['show_download_links'] == 'true' ) { echo 'checked="checked"'; }
+	echo ' /> show download links<br/>';
+}
 ?>
 <input <?php if ( ! empty($_REQUEST['need_csv']) && $_REQUEST['need_csv'] == 'true' ) { echo 'checked="checked"'; } ?> type="checkbox" name="need_csv" value="true" /> : CSV file<br/>
 <input <?php if ( ! empty($_REQUEST['need_chart']) && $_REQUEST['need_chart'] == 'true' ) { echo 'checked="checked"'; } ?> type="checkbox" name="need_chart" value="true" /> : Call Graph<br />
