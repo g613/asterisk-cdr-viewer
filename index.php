@@ -314,8 +314,6 @@ if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
 		$query = "SELECT *, unix_timestamp(calldate) as call_timestamp FROM $db_table_name $where $order $sort LIMIT $result_limit";
 		echo "\n<!--SQL - need_html / raw : $query-->\n";
 
-		$total_rows = 0;
-
 		try {
 		
 		$sth = $dbh->query($query);
@@ -323,61 +321,67 @@ if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
 			echo "\nPDO::errorInfo():\n";
 			print_r($dbh->errorInfo());
 		}
+		
+		$rate_total_col = 5;
+
 		while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 			++$i;
 			if ($i == $h_step) {
 			?>
 				<tr>
 				<th class="record_col">Call Date</th>
-				<th class="record_col">File</th>
+				<?php
+					if ( isset($display_column['file']) and $display_column['file'] == 1 ) {
+						echo '<th class="record_col">File</th>';
+						$rate_total_col++;
+					}
+				?>
 				<th class="record_col">Source</th>
 				<th class="record_col">Destination</th>
 				<?php
-					$total_rows = 10;
 					if ( isset($display_column['extension']) and $display_column['extension'] == 1 ) {
 						echo '<th class="record_col">Extension</th>';
-						$total_rows++;
+						$rate_total_col++;
 					}
 				?>
-				<th class="record_col">Application</th>
-				<th class="record_col">Src Channel</th>
-				<?php
-					if ( isset($display_column['clid']) and $display_column['clid'] == 1 ) {
-						echo '<th class="record_col">CallerID</th>';
-						$total_rows++;
-					}
-				?>
-				<th class="record_col">Dst Channel</th>
-				<th class="record_col">Disposition</th>
 				<th class="record_col">Duration</th>
+				<th class="record_col">Disposition</th>
 				<?php
+					if ( isset($_REQUEST['use_callrates']) && $_REQUEST['use_callrates'] == 'true' ) {
+						echo '<th class="record_col">CallRate</th><th class="record_col">CallRate Dst</th>';
+						$rate_total = 0;
+					}
 					if ( isset($display_column['billsec']) and $display_column['billsec'] == 1 ) {
 						echo '<th class="record_col">BillSec</th>';
-						$total_rows++;
 					}
-				?>
-				<th class="record_col">Userfield</th>
-				<?php
+					if ( isset($display_column['lastapp']) and $display_column['lastapp'] == 1 ) {
+						echo '<th class="record_col">Application</th>';
+					}
+					if ( isset($display_column['channel']) and $display_column['channel'] == 1 ) {
+						echo '<th class="record_col">Src Channel</th>';
+					}
+					if ( isset($display_column['clid']) and $display_column['clid'] == 1 ) {
+						echo '<th class="record_col">CallerID</th>';
+					}
+					if ( isset($display_column['dstchannel']) and $display_column['dstchannel'] == 1 ) {
+						echo '<th class="record_col">Dst Channel</th>';
+					}
+					if ( isset($display_column['userfield']) and $display_column['userfield'] == 1 ) {
+						echo '<th class="record_col">Userfield</th>';
+					}
 					if ( isset($display_column['accountcode']) and $display_column['accountcode'] == 1 ) {
 						echo '<th class="record_col">Account</th>';
-						$total_rows++;
 					}
 				?>
-				<?php
-				if ( isset($_REQUEST['use_callrates']) && $_REQUEST['use_callrates'] == 'true' ) {
-					echo '<th class="record_col">CallRate</th><th class="record_col">CallRate Dst</th>';
-					$rate_total = 0;
-				}
-				?>
-				<th class="img_col"><a href="#CDR" title="Go to the top of the CDR table"><img src="/icons/small/back.png" alt="CDR Table" /></a></th>
-				<th class="img_col"><a href="#Graph" title="Go to the top of the CDR graph"><img src="/icons/small/image2.png" alt="CDR Graph" /></a></th>
 				</tr>
 				<?php
 				$i = 0;
 			}
 			echo "  <tr class=\"record\">\n";
 			formatCallDate($row['calldate'],$row['uniqueid']);
-			formatFiles($row);
+			if ( isset($display_column['file']) and $display_column['file'] == 1 ) {
+				formatFiles($row);
+			}
 			formatSrc($row['src'],$row['clid']);
 			if ( isset($row['did']) and strlen($row['did']) ) {
 				formatDst($row['did'], $row['dcontext'] . ' # ' . $row['dst'] );
@@ -387,30 +391,35 @@ if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
 			if ( isset($display_column['extension']) and $display_column['extension'] == 1 ) {
 				formatDst($row['dst'], $row['dcontext'] );
 			}
-			formatApp($row['lastapp'], $row['lastdata']);
-			formatChannel($row['channel']);
-			if ( isset($display_column['clid']) and $display_column['clid'] == 1 ) {
-				formatClid($row['clid']);
-			}
-			formatChannel($row['dstchannel']);
-			formatDisposition($row['disposition'], $row['amaflags']);
 			formatDuration($row['duration'], $row['billsec']);
-			if ( isset($display_column['billsec']) and $display_column['billsec'] == 1 ) {
-				formatBillSec($row['billsec']);
-			};
-		
-			formatUserField($row['userfield']);
-			if ( isset($display_column['accountcode']) and $display_column['accountcode'] == 1 ) {
-				formatAccountCode($row['accountcode']);
-			}
+			formatDisposition($row['disposition'], $row['amaflags']);
 			if ( isset($_REQUEST['use_callrates']) && $_REQUEST['use_callrates'] == 'true' ) {
 				$rates = callrates($row['dst'],$row['billsec'],$callrate_csv_file);
 				$rate_total += $rates[4];
 				formatMoney($rates[4]);
 				echo "<td>". htmlspecialchars($rates[2]) ."</td>\n";
 			}
-			echo "    <td></td>\n";
-			echo "    <td></td>\n";
+			if ( isset($display_column['billsec']) and $display_column['billsec'] == 1 ) {
+				formatBillSec($row['billsec']);
+			};
+			if ( isset($display_column['lastapp']) and $display_column['lastapp'] == 1 ) {
+				formatApp($row['lastapp'], $row['lastdata']);
+			}
+			if ( isset($display_column['channel']) and $display_column['channel'] == 1 ) {
+				formatChannel($row['channel']);
+			}
+			if ( isset($display_column['clid']) and $display_column['clid'] == 1 ) {
+				formatClid($row['clid']);
+			}
+			if ( isset($display_column['dstchannel']) and $display_column['dstchannel'] == 1 ) {
+				formatChannel($row['dstchannel']);
+			}
+			if ( isset($display_column['userfield']) and $display_column['userfield'] == 1 ) {
+				formatUserField($row['userfield']);
+			}
+			if ( isset($display_column['accountcode']) and $display_column['accountcode'] == 1 ) {
+				formatAccountCode($row['accountcode']);
+			}
 			echo "  </tr>\n";
 		}
 		}
@@ -418,9 +427,9 @@ if ( isset($_REQUEST['need_html']) && $_REQUEST['need_html'] == 'true' ) {
 			print $e->getMessage();
 		}
 		if ( isset($_REQUEST['use_callrates']) && $_REQUEST['use_callrates'] == 'true' ) {
-			echo "<tr><td colspan='$total_rows' align='right'>Total:&nbsp;&nbsp;</td>";
+			echo "<tr><td colspan='$rate_total_col' align='right'>Total:&nbsp;&nbsp;</td>";
 			formatMoney($rate_total);
-			echo "</b></td></tr>\n";
+			echo "</tr>\n";
 		}
 		echo "</table>";
 		$sth = NULL;
@@ -459,7 +468,7 @@ switch ($group) {
 		$graph_col_title = 'Account Code';
 	break;
 	case "dst":
-		$graph_col_title = 'Extension';
+		$graph_col_title = 'Destination Number';
 	break;
 	case "did":
 		$graph_col_title = 'DID';
@@ -555,10 +564,9 @@ if ( isset($_REQUEST['need_chart']) && $_REQUEST['need_chart'] == 'true' ) {
 		echo '<p class="center title">Call Detail Record - Call Graph by '.$graph_col_title.'</p><table class="cdr">
 		<tr>
 			<th class="end_col">'. $graph_col_title . '</th>
+			<th>&nbsp;</th>
 			<th class="center_col">Total Calls: '. $tot_calls .' / Max Calls: '. $max_calls .' / Total Duration: '. $tot_duration .'</th>
 			<th class="end_col">Average Call Time</th>
-			<th class="img_col"><a href="#CDR" title="Go to the top of the CDR table"><img src="/icons/small/back.png" alt="CDR Table" /></a></th>
-			<th class="img_col"><a href="#Graph" title="Go to the CDR Graph"><img src="/icons/small/image2.png" alt="CDR Graph" /></a></th>
 		</tr>';
 	
 		foreach ($result_array as $row) {
@@ -569,9 +577,7 @@ if ( isset($_REQUEST['need_chart']) && $_REQUEST['need_chart'] == 'true' ) {
 			$percent_tot_duration = intval($row[2]/$tot_duration_secs*100);
 			$html_duration = sprintf('%02d', intval($row[2]/60)).':'.sprintf('%02d', intval($row[2]%60));
 			echo "  <tr>\n";
-			echo "    <td class=\"end_col\">$row[0]</td><td class=\"center_col\"><div class=\"bar_calls\" style=\"width : $bar_calls%\">$row[1] - $percent_tot_calls%</div><div class=\"bar_duration\" style=\"width : $bar_duration%\">$html_duration - $percent_tot_duration%</div></td><td class=\"chart_data\">$avg_call_time</td>\n";
-			echo "    <td></td>\n";
-			echo "    <td></td>\n";
+			echo "    <td class=\"end_col\">$row[0]</td><td nowrap='nowrap'><div class='bar_calls'>$row[1] - $percent_tot_calls%</div><div class='bar_duration'>$html_duration - $percent_tot_duration%</td><td class=\"center_col\"><div class=\"bar_calls\" style=\"width : $bar_calls%\">&nbsp;</div><div class=\"bar_duration\" style=\"width : $bar_duration%\">&nbsp;</div></td><td class=\"chart_data\">$avg_call_time</td>\n";
 			echo "  </tr>\n";
 		}
 		echo "</table>";
@@ -580,7 +586,7 @@ if ( isset($_REQUEST['need_chart']) && $_REQUEST['need_chart'] == 'true' ) {
 if ( isset($_REQUEST['need_chart_cc']) && $_REQUEST['need_chart_cc'] == 'true' ) {
 	$date_range = "( (calldate BETWEEN $startdate AND $enddate) or (calldate + interval duration second  BETWEEN $startdate AND $enddate) or ( calldate + interval duration second >= $enddate AND calldate <= $startdate ) )";
 	$where = "$channel $src $clid $dst $dstchannel $dst $userfield $accountcode $disposition $duration $cdr_user_name";
-	if ( strlen($where) > 9 ) {
+	if ( strlen($where) > 10 ) {
 		$where = "WHERE $date_range AND ( $where )";
 	} else {
 		$where = "WHERE $date_range";

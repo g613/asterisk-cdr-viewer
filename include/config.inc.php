@@ -62,6 +62,12 @@ $display_column['clid'] = 0;
 $display_column['accountcode'] = 1;
 $display_column['extension'] = 0;
 $display_column['billsec'] = 1;
+$display_column['file'] = 1;
+$display_column['channel'] = 1;
+$display_column['dstchannel'] = 1;
+$display_column['lastapp'] = 1;
+$display_column['userfield'] = 1;
+
 
 /* User name */
 $cdr_user_name = getenv('REMOTE_USER');
