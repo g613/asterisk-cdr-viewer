@@ -1,0 +1,205 @@
+## webiste informtion
+https://habr.com/ru/post/212815/
+https://code.google.com/archive/p/asterisk-cdr-viewer/wikis/ReadMe.wiki
+https://sysadminz.ru/index.php?PHPSESSID=5839a1b33b6242fbbf452afae2ac3ae1&topic=6592.msg179377#msg179377
+http://prog-it.github.io/Asterisk-CDR-Viewer-Mod/
+https://code.google.com/archive/p/asterisk-cdr-viewer/wikis/ReadMe.wiki
+https://web.archive.org/web/20161205131805/http://blog.thecall.ru:80/page/asterisk-18-cdr-v-mysql-cdr_adaptive_odbc
+
+
+#Create database Script
+
+mysql> create database asterisk;
+mysql> use asterisk;
+mysql> CREATE TABLE `cdr` (   `id` int(9) unsigned NOT NULL auto_increment,   `calldate` datetime NOT NULL default '0000-00-00 00:00:00',   `clid` varchar(80) NOT NULL default '',   `src` varchar(80) NOT NULL default '',   `dst` varchar(80) NOT NULL default '',   `dcontext` varchar(80) NOT NULL default '',   `channel` varchar(80) NOT NULL default '',   `dstchannel` varchar(80) NOT NULL default '',   `lastapp` varchar(80) NOT NULL default '',   `lastdata` varchar(80) NOT NULL default '',   `duration` int(11) NOT NULL default '0',   `billsec` int(11) NOT NULL default '0',   `disposition` varchar(45) NOT NULL default '',   `amaflags` int(11) NOT NULL default '0',   `accountcode` varchar(20) NOT NULL default '',   `uniqueid` varchar(32) NOT NULL default '',   `userfield` varchar(255) NOT NULL default '',   PRIMARY KEY  (`id`),   KEY `calldate` (`calldate`),   KEY `accountcode` (`accountcode`),   KEY `uniqueid` (`uniqueid`),   KEY `dst` (`dst`),   KEY `src` (`src`) ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+mysql> grant all on asterisk.* to 'asterisk_user'@'localhost' identified by '232d2edxse3e';
+mysql> \q
+Bye
+
+
+Cooking MySQL
+
+The CDRs of our Asterisk must be written to the MySQL database, how to configure this can be read here for example;).
+At the end of the cdr_mysql.conf file, in the [columns] section, add
+alias realdst => realdst
+alias filename => filename
+
+The file name of the conversation recording is written in the file field of the CDR table.
+Let's add it:
+mysql -uroot -p -e "alter table  `cdr` add column `filename` varchar(120)  after `userfield`;"  asterisk
+
+
+Dialplan
+
+I use extensions.ael to customize the Asterisk dialplan.
+extensions.ael
+globals {
+    WAV=/records/wav; //Временный каталог с WAV
+    MP3=/records/mp3; //Куда выгружать mp3 файлы
+    RECORDING=1; // Запись, 1 - включена.
+};
+
+macro recording (calling,called) {
+        if ("${RECORDING}" = "1"){
+              Set(fname=${UNIQUEID}-${STRFTIME(${EPOCH},,%Y-%m-%d-%H_%M)}-${calling}-${called});
+              Set(monopt=nice -n 19 /usr/bin/lame -b 32  --silent "${WAV}/${fname}.wav"  "${MP3}/${fname}.mp3" && rm -f "${WAV}/${fname}.wav" && chmod o+r "${MP3}/${fname}.mp3");
+              Set(CDR(filename)=${fname}.mp3);
+              Set(CDR(realdst)=${called});
+              MixMonitor(${WAV}/${fname}.wav,b,${monopt});
+
+       }; 
+};
+
+_XXXXXX => {
+        &recording(${CALLERID(number)},${EXTEN});
+        Dial(SIP/rtk/${EXTEN});
+        Hangup();
+        }
+
+
+Global variables define paths to files, as well as enable / disable conversation recording.
+The recording macro takes as parameters the number of the caller and the number where the call is made. If recording is enabled, then a temporary wav file is written, recoded into mp3, and the file name drops to the CDR label in MySQL.
+The file name consists of uniqueid-date_time-FromCall-ToCall, for example:
+1392597899.17572-2014-02-17-07_44-83843ZZZХХХ-32ХХZZ.mp3 
+
+mp3 files for the current day are added to / records / mp3 /
+Every night the script in the crown distributes the recordings of conversations in the folders corresponding to the date
+1 0 * * * /root/sh/mvrecords.sh
+
+#!/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+y=`date +%Y -d "-1 day"`
+ym=`date +%Y-%m -d "-1 day"`
+ymd=`date +%Y-%m-%d -d "-1 day"`
+mkdir -p /records/$y/$ym/$ymd/
+mv /records/mp3/*$ymd* /records/mp3/$y/$ym/$ymd/
+
+
+In the folder where the web interface files are located, you need to create a symlink to the / records / mp3 / folder
+/var/www# ls -l
+total 60
+-rw-r--r-- 1 fessae fessae   182 Nov 19  2011 callrates.csv
+drwxr-xr-x 3 fessae fessae  4096 Sep 26  2012 contrib
+-rw-r--r-- 1 fessae fessae  1986 Dec 22  2012 download.php
+-rw-r--r-- 1 fessae fessae   246 Sep  6  2013 downloads.php
+drwxr-xr-x 4 fessae fessae  4096 Apr 15 20:48 include
+-rw-r--r-- 1 fessae fessae 30384 Dec  2 20:21 index.php
+lrwxrwxrwx 1 root   root      13 Apr 15 20:48 records -> /records/mp3/
+drwxr-xr-x 2 fessae fessae  4096 Feb 13  2013 style
+drwxr-xr-x 3 fessae fessae  4096 Feb 18 21:07 templates
+
+
+Screenshots of the folder structure.
+
+
+
+
+PHP
+
+The include / functions.php file contains the logic for displaying the "download file with conversation" button and flash player in the "File" field.
+include / functions.php part
+	$recorded_file = $row['filename'];
+	$mycalldate = substr("$calldate",0,10);
+	$mycalldate_ym = substr("$calldate",0,7);
+	$mydate = date("Y-m-d");
+	
+
+if ($mycalldate<$mydate){
+if (file_exists("records/$mycalldate_ym/$mycalldate/$recorded_file")) {
+echo " <td class=\"record_col\"><a href=\"downloads.php?audio=records/$mycalldate_ym/$mycalldate/$recorded_file\" title=\"Скачать файл с разговором\"><img src=\"templates/images/sound.png\"</a>
+				<object type=\"application/x-shockwave-flash\" data=\"include/player_mp3_maxi.swf\" width=\"150\" height=\"20\">
+                                <param movie=include/player_mp3_maxi.swf/> 
+                                <param name=FlashVars value=mp3=records/$mycalldate_ym/$mycalldate/$recorded_file />     </td>\n";
+}
+else {echo "    <td class=\"record_col\">запись отсутствует</td>\n"; }
+}
+else {
+if (file_exists("records/$recorded_file")) {
+echo " <td class=\"record_col\"><a href=\"downloads.php?audio=records/$recorded_file\" title=\"Скачать файл с разговором\"><img src=\"templates/images/sound.png\"</a>
+				<object type=\"application/x-shockwave-flash\" data=\"include/player_mp3_maxi.swf\" width=\"150\" height=\"20\">
+                                <param movie=include/player_mp3_maxi.swf/> 
+				<param name=FlashVars value=mp3=records/$recorded_file />     </td>\n";
+}
+else {echo "    <td class=\"record_col\">запись отсутствует</td>\n";}
+
+}
+}
+
+
+This code determines in which folder to look for the file of the conversation recording.
+For the current day we search in / records / mp3, and for the previous ones in / records / mp3 / YEAR-MONTH / YEAR-MONTH-DAY /
+If the file was not found, then we will see “no record” in the “File” field.
+
+Also, do not forget to specify the details of connecting to MySQL ininclude/config.inc.php
+
+The curtain
+
+That's all!
+I will be glad if my work is useful.
+
+ps
+Fingers are available at links 1 and 2
+
+UPD
+If there is no account on Habré, I can help on the forum - sysadminz.ru/index.php?topic=6592.0
+UPD 2 A
+small glitch was found if recording in some directions is disabled (i.e. the file is not written and the filename field in the database is not filled), then the flash player is still displayed as if the file exists.
+To fix it, you need to make changes to the CDR table, set the default value for the filename field:
+mysql -p
+mysql> alter table cdr alter filename set default 'none';
+mysql> describe cdr;
++-------------+-----------------+------+-----+---------------------+----------------+
+| Field       | Type            | Null | Key | Default             | Extra          |
++-------------+-----------------+------+-----+---------------------+----------------+
+| id          | int(9) unsigned | NO   | PRI | NULL                | auto_increment |
+| calldate    | datetime        | NO   | MUL | 0000-00-00 00:00:00 |                |
+| clid        | varchar(80)     | NO   |     |                     |                |
+| src         | varchar(80)     | NO   | MUL |                     |                |
+| dst         | varchar(80)     | NO   | MUL |                     |                |
+| dcontext    | varchar(80)     | NO   |     |                     |                |
+| channel     | varchar(80)     | NO   |     |                     |                |
+| dstchannel  | varchar(80)     | NO   |     |                     |                |
+| lastapp     | varchar(80)     | NO   |     |                     |                |
+| lastdata    | varchar(80)     | NO   |     |                     |                |
+| duration    | int(11)         | NO   |     | 0                   |                |
+| billsec     | int(11)         | NO   |     | 0                   |                |
+| disposition | varchar(45)     | NO   |     |                     |                |
+| amaflags    | int(11)         | NO   |     | 0                   |                |
+| accountcode | varchar(20)     | NO   | MUL |                     |                |
+| uniqueid    | varchar(32)     | NO   | MUL |                     |                |
+| userfield   | varchar(255)    | NO   |     |                     |                |
+| filename    | varchar(120)    | YES  |     | none                |                |
++-------------+-----------------+------+-----+---------------------+----------------+
+18 rows in set (0.00 sec)
+
+mysql> \q
+Bye
+
+UPD 3 (from the header of the post)
+Comrad profiton (aka prog-it) significantly finished the topic.
+Screens:
+image
+image
+image
+image
+
+Features:
+Main features
+Completely Russian interface
+Updated design
+Pop-up tips
+Correct export of records to CSV file
+Correct call cost calculation (plugin)
+View the cost of each call (plugin)
+Ability to specify a non-tariff interval for correct cost calculation
+Ability to specify additional rate. For example: The cost of the first minute is 1 RUB, then 10 kopecks (additional tariff)
+The name of the call recording file is stored in the database The
+ability to listen to the call recording through the web interface
+You can click on the phone number and get information about it
+The player for listening to the call is loaded via javascript, so nothing slows down
+If call records are archived, you will be prompted to download the record
+If you received a fax, you can also download it
+Files for downloading are given by a script with the ability to resume.
+The folder for storing records can be located in any directory of your server
+And much more ...
